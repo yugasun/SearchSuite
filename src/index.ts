@@ -27,3 +27,17 @@ export type {
   UnsupportedParamMode,
 } from './types.js'
 export type { ProviderCapabilities } from './capabilities.js'
+export {
+  AuthenticationError,
+  ConfigurationError,
+  InvalidEngineError,
+  InvalidRequestError,
+  ProviderError,
+  ProviderUnavailableError,
+  QuotaExceededError,
+  RateLimitError,
+  SearchAbortedError,
+  SearchSuiteError,
+  SearchTimeoutError,
+  UnsupportedCapabilityError,
+} from './errors.js'
