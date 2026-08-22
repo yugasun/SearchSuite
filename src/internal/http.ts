@@ -16,7 +16,7 @@ export interface RequestJsonOptions {
   url: string
   init?: RequestInit
   signal?: AbortSignal
-  abortSource?: () => 'caller' | 'timeout' | undefined
+  abortSource?: (() => 'caller' | 'timeout' | undefined) | undefined
 }
 
 async function readBody(response: Response): Promise<unknown> {

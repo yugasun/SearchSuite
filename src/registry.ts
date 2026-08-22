@@ -1,4 +1,3 @@
-import { ConfigurationError } from './errors.js'
 import type { ProviderContext, ProviderId } from './types.js'
 import type { ProviderFactory, ProviderFactoryMap, SearchProvider } from './provider.js'
 
@@ -6,18 +5,12 @@ export interface ProviderRegistry {
   get(provider: ProviderId, context: ProviderContext): Promise<SearchProvider>
 }
 
-function unavailableFactory(provider: ProviderId): ProviderFactory {
-  return () => {
-    throw new ConfigurationError(`Provider adapter '${provider}' has not been implemented yet`)
-  }
-}
-
 const builtInFactories: Record<ProviderId, ProviderFactory> = {
-  baidu: unavailableFactory('baidu'),
-  doubao: unavailableFactory('doubao'),
-  tavily: unavailableFactory('tavily'),
-  exa: unavailableFactory('exa'),
-  serper: unavailableFactory('serper'),
+  baidu: async (context) => (await import('./providers/baidu.js')).createBaiduProvider(context),
+  doubao: async (context) => (await import('./providers/doubao.js')).createDoubaoProvider(context),
+  tavily: async (context) => (await import('./providers/tavily.js')).createTavilyProvider(context),
+  exa: async (context) => (await import('./providers/exa.js')).createExaProvider(context),
+  serper: async (context) => (await import('./providers/serper.js')).createSerperProvider(context),
 }
 
 export function createProviderRegistry(overrides: ProviderFactoryMap = {}): ProviderRegistry {

@@ -13,6 +13,7 @@ export type { ProviderContext } from './types.js'
 
 export interface ProviderSearchContext extends ProviderContext {
   signal: AbortSignal
+  abortSource?: () => 'caller' | 'timeout' | undefined
   warn: (warning: SearchWarning) => void
 }
 
