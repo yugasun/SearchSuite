@@ -27,6 +27,7 @@ export type {
   UnsupportedParamMode,
 } from './types.js'
 export type { ProviderCapabilities } from './capabilities.js'
+export { SearchSuite } from './client.js'
 export {
   AuthenticationError,
   ConfigurationError,
