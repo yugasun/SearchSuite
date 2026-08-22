@@ -127,6 +127,7 @@ export class SearchSuite {
         timeoutMs: this.timeoutMs,
         config: this.providers ?? {},
         signal: combined.signal,
+        abortSource: combined.source,
         warn: (warning) => emitWarning(this.onWarning, warning),
       })
       combined.throwIfAborted()

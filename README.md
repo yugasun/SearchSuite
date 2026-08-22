@@ -41,7 +41,7 @@ const response = await client.search({
 
 ## 当前状态
 
-项目处于 v0.1 设计与工程初始化阶段。示例展示目标 API，尚不代表仓库已经具备可安装实现。
+当前 v0.1 SDK 已在工作区完成首版实现，尚未发布到 npm；可通过 `pnpm build` 和 `pnpm pack` 进行本地安装验证。
 
 v0.1 包含：
 

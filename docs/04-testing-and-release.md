@@ -87,6 +87,7 @@ function assertSearchContract<E extends SearchEngine>(
 ## 6. Live Integration Test
 
 - 目录 `test/integration/`，marker/环境开关显式启用。
+- 默认 `pnpm test` 不加载该目录；需要主动运行 `pnpm test:live`。
 - 无对应 key 时 skip。
 - 查询稳定、无敏感信息、`maxResults` 小。
 - 不断言具体标题、排名或固定数量。
