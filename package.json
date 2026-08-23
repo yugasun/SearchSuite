@@ -2,11 +2,37 @@
   "name": "searchsuite",
   "version": "0.1.0",
   "description": "A unified TypeScript search SDK for multiple web search providers.",
+  "keywords": [
+    "search",
+    "web-search",
+    "typescript",
+    "sdk",
+    "ai-agent",
+    "rag",
+    "baidu",
+    "doubao",
+    "tavily",
+    "exa",
+    "serper"
+  ],
+  "homepage": "https://github.com/yugasun/SearchSuite#readme",
+  "bugs": {
+    "url": "https://github.com/yugasun/SearchSuite/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yugasun/SearchSuite.git"
+  },
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
+  "types": "./dist/index.d.ts",
   "engines": {
     "node": ">=24"
+  },
+  "packageManager": "pnpm@10.32.1",
+  "publishConfig": {
+    "access": "public"
   },
   "exports": {
     ".": {
@@ -17,6 +43,7 @@
   "files": [
     "dist",
     "README.md",
+    "README.zh-CN.md",
     "LICENSE",
     "CHANGELOG.md"
   ],
