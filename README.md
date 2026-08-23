@@ -1,6 +1,6 @@
 # SearchSuite
 
-[中文文档](README.zh-CN.md)
+[中文文档](https://github.com/yugasun/SearchSuite/blob/main/README.zh-CN.md)
 
 [![CI](https://github.com/yugasun/SearchSuite/actions/workflows/ci.yml/badge.svg)](https://github.com/yugasun/SearchSuite/actions/workflows/ci.yml)
 ![Node.js >=24](https://img.shields.io/badge/Node.js-%3E%3D24-339933?logo=node.js&logoColor=white)
@@ -17,7 +17,7 @@ SearchSuite is a framework-independent TypeScript SDK that normalizes the differ
 
 - **One typed API:** use the same request and response shape across five providers.
 - **Engine-based switching:** select an implementation with literals such as `tavily:advanced` or `exa:auto`.
-- **Engine-sensitive options:** TypeScript infers the valid `providerOptions` from the selected engine, with runtime validation at the provider boundary.
+- **Engine-sensitive options:** TypeScript infers the valid `providerOptions` from the selected engine, while providers reject unknown option keys at runtime.
 - **Portable results and errors:** receive normalized results, usage, latency, cancellation, timeout, and provider error metadata while retaining safe provider data in `raw`.
 - **A small, independent core:** native `fetch`, ESM-only, zero runtime dependencies, and no agent-framework coupling.
 
@@ -105,14 +105,14 @@ const response = await client.search({
 | Exa | `exa:auto`, `exa:keyword`, `exa:neural` | `EXA_API_KEY` |
 | Serper | `serper:google` | `SERPER_API_KEY` |
 
-See the [provider guide and capability matrix](docs/providers.md) for common parameter support, limits, normalized fields, and provider-specific behavior. Scores retain provider-local semantics and must not be compared across providers.
+See the [provider guide and capability matrix](https://github.com/yugasun/SearchSuite/blob/main/docs/providers.md) for common parameter support, limits, normalized fields, and provider-specific behavior. Scores retain provider-local semantics and must not be compared across providers.
 
 ## Configuration
 
-Configuration is resolved in this order:
+Each configuration field is resolved independently in this order:
 
 ```text
-explicit providers config > environment variables > provider defaults
+explicit provider configuration > corresponding environment variable > provider default
 ```
 
 Explicit configuration is useful for controlled server environments and compatible endpoints:
@@ -142,7 +142,7 @@ SearchSuite reads provider environment variables, but it does **not** discover o
 
 ## Typed provider options
 
-Provider-specific features stay under `providerOptions`. Their type is inferred from `engine` and the same allowlist is validated at runtime:
+Provider-specific features stay under `providerOptions`. TypeScript infers their valid keys and value types from `engine`; at runtime, providers reject unknown option keys:
 
 ```ts
 const response = await client.search({
@@ -212,22 +212,22 @@ These capabilities can be built above the SDK without coupling the provider comp
 
 ## Documentation
 
-- [Documentation index](docs/README.md)
-- [Getting started](docs/getting-started.md)
-- [Providers and capability matrix](docs/providers.md)
-- [API reference](docs/api-reference.md)
-- [Development and testing](docs/development.md)
-- [Architecture](docs/architecture.md)
-- [Roadmap](docs/roadmap.md)
+- [Documentation index](https://github.com/yugasun/SearchSuite/blob/main/docs/README.md)
+- [Getting started](https://github.com/yugasun/SearchSuite/blob/main/docs/getting-started.md)
+- [Providers and capability matrix](https://github.com/yugasun/SearchSuite/blob/main/docs/providers.md)
+- [API reference](https://github.com/yugasun/SearchSuite/blob/main/docs/api-reference.md)
+- [Development and testing](https://github.com/yugasun/SearchSuite/blob/main/docs/development.md)
+- [Architecture](https://github.com/yugasun/SearchSuite/blob/main/docs/architecture.md)
+- [Roadmap](https://github.com/yugasun/SearchSuite/blob/main/docs/roadmap.md)
 - [Changelog](CHANGELOG.md)
 
-The design baseline is recorded in [TECHNICAL_DESIGN.md](TECHNICAL_DESIGN.md).
+The design baseline is recorded in [TECHNICAL_DESIGN.md](https://github.com/yugasun/SearchSuite/blob/main/TECHNICAL_DESIGN.md).
 
 ## Contributing, support, and security
 
-Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing public API or provider behavior changes. For usage questions and bug-report guidance, see [SUPPORT.md](SUPPORT.md).
+Contributions are welcome. Read [CONTRIBUTING.md](https://github.com/yugasun/SearchSuite/blob/main/CONTRIBUTING.md) before proposing public API or provider behavior changes. For usage questions and bug-report guidance, see [SUPPORT.md](https://github.com/yugasun/SearchSuite/blob/main/SUPPORT.md).
 
-Please report vulnerabilities through the private process described in [SECURITY.md](SECURITY.md), and never include API keys, authorization headers, `.env` files, or unredacted provider responses in a public issue.
+Please report vulnerabilities through the private process described in [SECURITY.md](https://github.com/yugasun/SearchSuite/blob/main/SECURITY.md), and never include API keys, authorization headers, `.env` files, or unredacted provider responses in a public issue.
 
 ## License
 
