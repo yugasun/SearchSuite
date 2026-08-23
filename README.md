@@ -1,27 +1,75 @@
 # SearchSuite
 
-> One TypeScript API for Baidu, Doubao, Tavily, Exa, Serper, and more.
+[中文文档](README.zh-CN.md)
 
-SearchSuite 是一个面向 AI Agent、Deep Research、RAG 和联网问答场景的统一搜索 SDK。它借鉴 [aisuite](https://github.com/andrewyng/aisuite) 的 Provider 抽象，通过统一的请求、响应、类型和异常模型屏蔽不同搜索服务的 HTTP API 差异。
+[![CI](https://github.com/yugasun/SearchSuite/actions/workflows/ci.yml/badge.svg)](https://github.com/yugasun/SearchSuite/actions/workflows/ci.yml)
+![Node.js >=24](https://img.shields.io/badge/Node.js-%3E%3D24-339933?logo=node.js&logoColor=white)
+![ESM only](https://img.shields.io/badge/modules-ESM--only-blue)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-项目最初来自为 DeepSeek Harness 设计的 `dsh-web-search` 插件。SearchSuite 将其中可复用的搜索兼容层抽离为纯 TypeScript SDK，但不依赖任何 dsh 包；未来 `dsh-web-search` 可以作为普通消费者直接复用它。
+One typed API for Baidu, Doubao, Tavily, Exa, and Serper search.
 
-```ts
+SearchSuite is a framework-independent TypeScript SDK that normalizes the different APIs of web search providers behind `await client.search({ engine: 'provider:engine', ... })`. It originated from the provider layer of `dsh-web-search`, but the core SDK has no dependency on DeepSeek Harness or any other agent framework.
+
+> **Status:** v0.1 is implemented and available for local evaluation, but is still pre-release and has not been published to npm. Public APIs may evolve before the first release.
+
+## Why SearchSuite?
+
+- **One typed API:** use the same request and response shape across five providers.
+- **Engine-based switching:** select an implementation with literals such as `tavily:advanced` or `exa:auto`.
+- **Engine-sensitive options:** TypeScript infers the valid `providerOptions` from the selected engine, with runtime validation at the provider boundary.
+- **Portable results and errors:** receive normalized results, usage, latency, cancellation, timeout, and provider error metadata while retaining safe provider data in `raw`.
+- **A small, independent core:** native `fetch`, ESM-only, zero runtime dependencies, and no agent-framework coupling.
+
+## Requirements
+
+- Node.js 24 or newer
+- An ESM project; CommonJS and `require()` are not supported
+
+SearchSuite ships TypeScript declarations and uses the Web Platform `fetch`, `AbortSignal`, and `AbortController` APIs provided by Node.js.
+
+## Install from a local package
+
+The package is not on npm yet. Clone the repository, build it, and create the same tarball that will eventually be published:
+
+```sh
+git clone https://github.com/yugasun/SearchSuite.git
+cd SearchSuite
+corepack enable
+pnpm install --frozen-lockfile
+pnpm build
+pnpm pack --pack-destination .tmp
+```
+
+Install that tarball in a clean consumer project:
+
+```sh
+cd ..
+mkdir searchsuite-consumer
+cd searchsuite-consumer
+npm init -y
+npm install ../SearchSuite/.tmp/searchsuite-0.1.0.tgz
+```
+
+Keep the generated tarball path aligned with the version reported by `pnpm pack`.
+
+## Quick start
+
+Set the credential in the server process, then create `app.mjs`:
+
+```sh
+export TAVILY_API_KEY='your-api-key'
+```
+
+```js
 import { SearchSuite } from 'searchsuite'
 
-const client = new SearchSuite({
-  providers: {
-    tavily: {
-      apiKey: process.env.TAVILY_API_KEY,
-    },
-  },
-})
+const client = new SearchSuite()
 
 const response = await client.search({
   engine: 'tavily:advanced',
-  query: 'AI Agent search infrastructure',
+  query: 'Recent advances in AI agent search',
   maxResults: 5,
-  signal: AbortSignal.timeout(30_000),
 })
 
 for (const result of response.results) {
@@ -29,54 +77,158 @@ for (const result of response.results) {
 }
 ```
 
-切换 Provider 只需要修改 engine：
+```sh
+node app.mjs
+```
 
-```ts
+The SDK resolves `TAVILY_API_KEY` when the provider is first used. Keep provider credentials on the server; do not expose them in browser bundles or commit them to source control.
+
+## Switch providers
+
+Once the corresponding credential is available, changing providers only requires a different engine:
+
+```js
 const response = await client.search({
   engine: 'exa:auto',
-  query: 'AI Agent search infrastructure',
+  query: 'Recent advances in AI agent search',
   maxResults: 5,
 })
 ```
 
-## 当前状态
+## Supported providers
 
-当前 v0.1 SDK 已在工作区完成首版实现，尚未发布到 npm；可通过 `pnpm build` 和 `pnpm pack` 进行本地安装验证。
+| Provider | Implemented engines | Credential environment variables |
+| --- | --- | --- |
+| Baidu | `baidu:web`, `baidu:ai` | `BAIDU_API_KEY` or `QIANFAN_API_KEY` |
+| Doubao | `doubao:custom`, `doubao:global` | `DOUBAO_API_KEY` or `DOUBAO_SEARCH_API_KEY` |
+| Tavily | `tavily:basic`, `tavily:advanced`, `tavily:fast`, `tavily:ultra-fast` | `TAVILY_API_KEY` |
+| Exa | `exa:auto`, `exa:keyword`, `exa:neural` | `EXA_API_KEY` |
+| Serper | `serper:google` | `SERPER_API_KEY` |
 
-v0.1 包含：
+See the [provider guide and capability matrix](docs/providers.md) for common parameter support, limits, normalized fields, and provider-specific behavior. Scores retain provider-local semantics and must not be compared across providers.
 
-- Node.js 24+、TypeScript strict、纯 ESM
-- 单一异步 `search()` API
-- `provider:engine` 命名约定
-- Baidu、Doubao、Tavily、Exa、Serper Adapter
-- engine 感知的 `providerOptions` 类型推导
-- 统一请求、响应、异常、能力声明与取消语义
-- BYOK、环境变量和显式 Provider 配置
-- 零 runtime dependency，使用原生 `fetch`
-- Unit、Provider Contract 和可选 Live Integration Test
+## Configuration
 
-Router、fallback、retry、多 Key、配额/成本路由、联邦搜索、重排、缓存、Extract/Crawl，以及 dsh 插件不属于 v0.1。
+Configuration is resolved in this order:
 
-## 研发文档
+```text
+explicit providers config > environment variables > provider defaults
+```
 
-- [技术设计总览](TECHNICAL_DESIGN.md)
-- [研发文档索引](docs/README.md)
-- [产品定位与范围](docs/01-product-scope.md)
-- [架构与公共 API](docs/02-architecture-and-api.md)
-- [Provider Adapter 开发规范](docs/03-provider-adapter-guide.md)
-- [测试、CI 与发布](docs/04-testing-and-release.md)
-- [路线图与任务拆分](docs/05-roadmap.md)
-- [ADR-0001：TypeScript v0.1 架构基线](docs/adr/0001-v0.1-architecture-baseline.md)
-- [完整 TypeScript SDK 设计规范](docs/superpowers/specs/2026-08-22-typescript-sdk-design.md)
+Explicit configuration is useful for controlled server environments and compatible endpoints:
 
-## 核心原则
+```js
+const client = new SearchSuite({
+  providers: {
+    tavily: {
+      apiKey: '<server-side-api-key>',
+      baseUrl: 'https://api.tavily.com',
+    },
+  },
+})
+```
 
-1. Provider Adapter 必须薄，只负责参数转换、远端调用、结果标准化与错误映射。
-2. 通用类型覆盖高频能力，Provider 特性进入 `providerOptions`，原始数据进入 `raw`。
-3. 公共 API 稳定性和 TypeScript 开发体验优先于内部抽象的“优雅”。
-4. SDK 不依赖 Provider 官方 SDK 或 Agent/Harness 框架。
-5. Provider Compatibility 与 Provider Selection 分层演进。
+For local development, Node.js 24 can load a `.env` file without another package:
+
+```dotenv
+TAVILY_API_KEY=your-api-key
+```
+
+```sh
+node --env-file=.env app.mjs
+```
+
+SearchSuite reads provider environment variables, but it does **not** discover or load `.env` files itself.
+
+## Typed provider options
+
+Provider-specific features stay under `providerOptions`. Their type is inferred from `engine` and the same allowlist is validated at runtime:
+
+```ts
+const response = await client.search({
+  engine: 'tavily:advanced',
+  query: 'Latest retrieval-augmented generation research',
+  providerOptions: {
+    topic: 'general',
+    includeAnswer: 'advanced',
+    includeRawContent: 'markdown',
+    chunksPerSource: 2,
+  },
+})
+```
+
+For example, TypeScript rejects `chunksPerSource` for `tavily:basic` because that option belongs to the advanced engine.
+
+## Errors, timeouts, and cancellation
+
+`timeoutMs` is the SDK request deadline. A caller-provided `AbortSignal` remains a separate cancellation source:
+
+```js
+import {
+  SearchAbortedError,
+  SearchSuite,
+  SearchSuiteError,
+  SearchTimeoutError,
+} from 'searchsuite'
+
+const client = new SearchSuite({ timeoutMs: 30_000 })
+const controller = new AbortController()
+const cancellation = setTimeout(() => controller.abort(), 2_000)
+
+try {
+  const response = await client.search({
+    engine: 'serper:google',
+    query: 'Node.js ESM package design',
+    signal: controller.signal,
+  })
+  console.log(response.results)
+} catch (error) {
+  if (error instanceof SearchTimeoutError) {
+    console.error('The SearchSuite deadline expired')
+  } else if (error instanceof SearchAbortedError) {
+    console.error('The caller cancelled the search')
+  } else if (error instanceof SearchSuiteError) {
+    console.error(error.code, error.provider, error.retryable)
+  } else {
+    throw error
+  }
+} finally {
+  clearTimeout(cancellation)
+}
+```
+
+Provider failures are mapped to stable error classes with safe metadata. A `retryable` flag describes the failure; SearchSuite v0.1 does not automatically retry or fall back to another provider.
+
+## v0.1 scope
+
+SearchSuite v0.1 focuses on a unified search API and five thin provider adapters. It intentionally does not include:
+
+- provider routing, fallback, retries, multi-key selection, quota or cost routing
+- federated search, result fusion, reranking, or caching
+- Extract, Crawl, or `web_fetch`
+- a gateway, SaaS layer, or DeepSeek Harness plugin
+
+These capabilities can be built above the SDK without coupling the provider compatibility layer to one orchestration model.
+
+## Documentation
+
+- [Documentation index](docs/README.md)
+- [Getting started](docs/getting-started.md)
+- [Providers and capability matrix](docs/providers.md)
+- [API reference](docs/api-reference.md)
+- [Development and testing](docs/development.md)
+- [Architecture](docs/architecture.md)
+- [Roadmap](docs/roadmap.md)
+- [Changelog](CHANGELOG.md)
+
+The design baseline is recorded in [TECHNICAL_DESIGN.md](TECHNICAL_DESIGN.md).
+
+## Contributing, support, and security
+
+Contributions are welcome. Read [CONTRIBUTING.md](CONTRIBUTING.md) before proposing public API or provider behavior changes. For usage questions and bug-report guidance, see [SUPPORT.md](SUPPORT.md).
+
+Please report vulnerabilities through the private process described in [SECURITY.md](SECURITY.md), and never include API keys, authorization headers, `.env` files, or unredacted provider responses in a public issue.
 
 ## License
 
-建议使用 MIT License；正式发布前由项目维护者确认。
+SearchSuite is licensed under the [MIT License](LICENSE).
