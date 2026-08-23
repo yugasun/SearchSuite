@@ -31,6 +31,8 @@ The scripts below are defined in [`package.json`](../package.json):
 | `pnpm test:live` | Runs credential-gated integration tests and can access provider APIs or consume credits. |
 | `pnpm test:watch` | Starts Vitest watch mode for matching tests; live tests remain credential-gated. |
 | `pnpm pack:check` | Builds the package and runs publint. It does not run tests or create a tarball. |
+| `pnpm check` | Runs the complete offline release validation sequence. |
+| `pnpm changeset` | Creates release metadata for a user-visible package change. |
 
 The default test command must remain offline. Mocked tests inject `fetch`; they
 must never use a real endpoint or credential.
@@ -203,6 +205,23 @@ Node.js release. For each runtime it performs only these steps:
 
 It does not run live tests, create or inspect the tarball, install a clean
 consumer, validate registry installation, or publish the package.
+
+## Automated release
+
+SearchSuite uses Changesets and the release workflow in
+[`.github/workflows/release.yml`](../.github/workflows/release.yml):
+
+1. A pull request includes a `.changeset/*.md` file for its user-visible
+   package changes.
+2. After the pull request merges into `main`, the workflow creates or updates
+   a `Version Packages` pull request.
+3. When that version pull request merges, the workflow runs `pnpm check`, packs
+   the artifact, and publishes the new version to npm.
+
+The npm package `searchsuite` must have a Trusted Publisher configured for the
+repository and `.github/workflows/release.yml`. The publish job uses GitHub's
+OIDC token and does not require an npm token secret. The initial Trusted
+Publisher setup is a one-time npm account configuration.
 
 ## Keep documentation aligned
 
