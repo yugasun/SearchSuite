@@ -24,7 +24,7 @@ The scripts below are defined in [`package.json`](../package.json):
 | Command | What it does |
 | --- | --- |
 | `pnpm build` | Runs tsdown and writes the ESM bundle, declarations, and source maps to `dist/`. |
-| `pnpm typecheck` | Runs strict TypeScript checking without emitting files. It includes source, tests, examples, and type-consumer fixtures. |
+| `pnpm typecheck` | Runs strict TypeScript checking without emitting files for source, tests, and type-consumer fixtures. |
 | `pnpm lint` | Runs Oxlint across the repository. |
 | `pnpm lint:fix` | Applies Oxlint's safe automatic fixes. |
 | `pnpm test` | Runs only `test/unit` and `test/contract`; it is the offline default. |
@@ -56,8 +56,8 @@ authorization data, and add a fixture before fixing a provider compatibility
 regression.
 
 Engine or `providerOptions` changes require type-inference coverage under
-`test/typecheck/` or the focused type unit tests. Examples are also checked by
-the repository TypeScript configuration.
+`test/typecheck/` or the focused type unit tests. The standalone examples have
+their own `examples/tsconfig.json` and should be checked from that directory.
 
 ## Run live tests explicitly
 
