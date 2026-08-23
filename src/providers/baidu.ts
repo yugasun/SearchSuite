@@ -3,6 +3,7 @@ import {
   clampMaxResults,
   normalizedResult,
   providerOptions,
+  providerOptionRules,
   record,
   resolveProviderConfig,
   safeRaw,
@@ -61,6 +62,7 @@ export function createBaiduProvider(context: ProviderContext): SearchProvider {
         searchContext,
         'baidu',
         engine,
+        { model: providerOptionRules.string },
       )
       const max = mode === 'ai' ? 20 : 50
       const maxResults = clampMaxResults(request.maxResults, max, searchContext, engine)

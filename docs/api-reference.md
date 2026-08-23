@@ -72,7 +72,7 @@ the same normalized hostname is both included and excluded. Provider adapters
 may clamp valid values to their upstream limits and emit a warning.
 
 TypeScript only protects typed callers. Adapters also validate
-`providerOptions` at runtime and reject unknown option keys. See
+`providerOptions` at runtime and reject unknown keys or invalid values. See
 [Providers](providers.md) for each Provider's options and defaults.
 
 There is no `asearch` alias: `search()` is already asynchronous.

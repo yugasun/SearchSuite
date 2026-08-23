@@ -34,5 +34,15 @@ describe('Doubao provider', () => {
       expect.objectContaining({ body: expect.stringContaining('"MaxSnippetLength":400') }),
     )
   })
-})
 
+  test('rejects invalid custom option values before requesting', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+    const provider = createDoubaoProvider(makeContext(fetcher, { doubao: { apiKey: 'test-key' } }))
+
+    await expect(provider.search(makeRequest('doubao:custom', {
+      providerOptions: { needSummary: 'false' as unknown as boolean },
+    }), makeSearchContext(fetcher, { doubao: { apiKey: 'test-key' } })))
+      .rejects.toMatchObject({ code: 'INVALID_REQUEST', provider: 'doubao' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+})

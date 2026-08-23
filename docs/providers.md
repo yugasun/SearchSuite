@@ -40,8 +40,8 @@ const client = new SearchSuite({
 The Provider examples below use this `client`; the relevant environment credential
 must be present for any provider without an explicit key.
 
-Unknown provider option keys are rejected both by TypeScript for typed calls and
-at runtime for untyped input.
+Unknown provider option keys and invalid provider option values are rejected both
+by TypeScript for typed calls and at runtime for untyped input.
 
 ## Baidu
 

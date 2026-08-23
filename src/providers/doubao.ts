@@ -3,6 +3,7 @@ import {
   clampMaxResults,
   normalizedResult,
   providerOptions,
+  providerOptionRules,
   record,
   resolveProviderConfig,
   safeRaw,
@@ -71,6 +72,9 @@ export function createDoubaoProvider(context: ProviderContext): SearchProvider {
         searchContext,
         'doubao',
         engine,
+        mode === 'custom'
+          ? { needSummary: providerOptionRules.boolean }
+          : { maxSnippetLength: providerOptionRules.positiveSafeInteger },
       )
       const max = mode === 'global' ? 20 : 50
       const maxResults = clampMaxResults(request.maxResults, max, searchContext, engine)

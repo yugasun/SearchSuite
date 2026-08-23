@@ -3,6 +3,7 @@ import {
   clampMaxResults,
   normalizedResult,
   providerOptions,
+  providerOptionRules,
   record,
   resolveProviderConfig,
   safeRaw,
@@ -28,7 +29,14 @@ export function createSerperProvider(context: ProviderContext): SearchProvider {
     capabilities: CAPABILITIES,
     async search(request, searchContext): Promise<SearchResponse> {
       const engine = request.engine
-      const options = providerOptions(request.providerOptions, ['gl', 'hl'], searchContext, 'serper', engine)
+      const options = providerOptions(
+        request.providerOptions,
+        ['gl', 'hl'],
+        searchContext,
+        'serper',
+        engine,
+        { gl: providerOptionRules.string, hl: providerOptionRules.string },
+      )
       const body: Record<string, unknown> = {
         q: request.query,
         num: clampMaxResults(request.maxResults, 100, searchContext, engine),
