@@ -18,7 +18,7 @@ SearchSuite 是一个独立于框架的 TypeScript SDK，通过 `await client.se
 - **统一的类型安全 API：** 五个 Provider 使用相同的请求和响应结构。
 - **按 Engine 切换：** 使用 `tavily:advanced`、`exa:auto` 等字面量选择具体实现。
 - **与 Engine 联动的选项：** TypeScript 会根据所选 Engine 推断有效的 `providerOptions`；运行时，Provider 会拒绝未知选项键。
-- **可移植的结果和错误：** 获得统一的结果、用量、延迟、取消、超时和 Provider 错误元数据，同时在 `raw` 中保留安全的 Provider 数据。
+- **统一的结果与错误模型：** 获得标准化的结果、用量、延迟、取消、超时和 Provider 错误元数据，同时在 `raw` 中保留经过安全处理的 Provider 数据。
 - **轻量且独立的核心：** 使用原生 `fetch`，仅支持 ESM，零运行时依赖，不耦合 Agent 框架。
 
 ## 环境要求
@@ -30,7 +30,7 @@ SearchSuite 提供 TypeScript 类型声明，并使用 Node.js 提供的 Web Pla
 
 ## 从本地包安装
 
-该包尚未发布到 npm。克隆仓库、完成构建，并生成一个符合 npm 预期发布包结构的本地 tarball：
+该包尚未发布到 npm。克隆仓库、完成构建，并生成一个符合 npm 发布格式的本地 tarball：
 
 ```sh
 git clone https://github.com/yugasun/SearchSuite.git
