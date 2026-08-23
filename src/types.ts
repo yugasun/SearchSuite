@@ -6,6 +6,8 @@ export type FetchProviderId = 'tavily' | 'exa'
 
 export type BaiduSearchMode = 'web' | 'ai'
 
+export type DoubaoSearchMode = 'custom' | 'global'
+
 export interface EngineMap {
   baidu: 'web' | 'ai'
   doubao: 'custom' | 'global'
@@ -50,9 +52,15 @@ export interface DoubaoGlobalSearchOptions {
   maxSnippetLength?: number
 }
 
-export interface DoubaoSearchOptions extends DoubaoCustomSearchOptions, DoubaoGlobalSearchOptions {
-  mode?: 'custom' | 'global'
+export interface DoubaoCustomProviderSearchOptions extends DoubaoCustomSearchOptions {
+  mode?: 'custom'
 }
+
+export interface DoubaoGlobalProviderSearchOptions extends DoubaoGlobalSearchOptions {
+  mode: 'global'
+}
+
+export type DoubaoSearchOptions = DoubaoCustomProviderSearchOptions | DoubaoGlobalProviderSearchOptions
 
 export interface TavilySearchOptions {
   searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'

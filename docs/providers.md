@@ -85,9 +85,11 @@ top-level `answer`. Baidu web does not fabricate an answer.
 
 Provider modes and typed options:
 
-- `mode?: 'custom' | 'global'` (default: `custom`).
-- `needSummary?: boolean` applies to custom search.
-- `maxSnippetLength?: number` applies to global search.
+- `mode?: 'custom'` (default: `custom`) enables `needSummary?: boolean`.
+- `mode: 'global'` enables `maxSnippetLength?: number`.
+
+The Provider-first `DoubaoSearchOptions` type is discriminated by mode, so
+custom-only and global-only options cannot be mixed accidentally.
 
 ```ts
 const custom = await client.search({
