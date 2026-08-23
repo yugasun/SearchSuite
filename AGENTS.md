@@ -50,8 +50,8 @@
 ## Documentation
 
 - Read `TECHNICAL_DESIGN.md` and the relevant file in `docs/` before changing public behavior.
-- Update the provider capability matrix and CHANGELOG when provider behavior changes.
-- Record changes to engine syntax, public types, default modes, cancellation semantics, or request-count behavior in `TECHNICAL_DESIGN.md` and `CHANGELOG.md`. Keep local ADR notes under the ignored `docs/adr/` directory rather than committing them.
+- Update the provider capability matrix and relevant public documentation when provider behavior changes.
+- Record changes to engine syntax, public types, default modes, cancellation semantics, or request-count behavior in `TECHNICAL_DESIGN.md` and the relevant public guide. Keep local ADR notes under the ignored `docs/adr/` directory rather than committing them.
 
 ## Scope
 

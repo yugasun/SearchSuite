@@ -3,35 +3,14 @@
 SearchSuite requires Node.js 24 or newer and an ESM application. It does not
 provide CommonJS or `require()` exports.
 
-> **Pre-release status:** SearchSuite v0.1 is available for local evaluation but
-> has not been published to npm. Build and install the repository tarball while
-> the public API is being finalized.
+> **Pre-release status:** SearchSuite v0.1 is being prepared for its first npm
+> release. Once published, install it with `npm install searchsuite`.
 
-## Build a local package
-
-Clone the source, use the repository's pinned pnpm version through Corepack, and
-create the same tarball shape that will eventually be published:
+## Installation
 
 ```sh
-git clone https://github.com/yugasun/SearchSuite.git
-cd SearchSuite
-corepack enable
-pnpm install --frozen-lockfile
-pnpm build
-pnpm pack --pack-destination .tmp
+npm install searchsuite
 ```
-
-Install the tarball in a clean consumer project:
-
-```sh
-cd ..
-mkdir searchsuite-consumer
-cd searchsuite-consumer
-npm init -y
-npm install ../SearchSuite/.tmp/searchsuite-0.1.0.tgz
-```
-
-Use the filename printed by `pnpm pack` if the package version has changed.
 
 ## Configure a provider
 
@@ -75,7 +54,7 @@ details.
 
 ## Use a `.env` file locally
 
-Create `.env` in the repository or consumer project:
+Create `.env` in your application project:
 
 ```dotenv
 TAVILY_API_KEY=your-api-key
@@ -92,8 +71,8 @@ SearchSuite reads provider environment variables from `process.env`, but it does
 
 ## Run the first search
 
-Create `app.mjs` in the clean consumer project. No constructor configuration is
-needed when the matching environment variable is present:
+Create `app.mjs` in your project. No constructor configuration is needed when
+the matching environment variable is present:
 
 ```js
 import { SearchSuite } from 'searchsuite'
@@ -122,28 +101,6 @@ The same request shape works with any implemented engine once its credential is
 available. See [Providers](providers.md) for exact engine literals and typed
 `providerOptions`.
 
-## Tests: offline by default, live by request
-
-The default test command runs mocked unit and common contract suites. It does not
-make network requests or consume provider credits:
-
-```sh
-pnpm test
-```
-
-Live integration tests are separate, credential-gated, and may consume provider
-credits. To run exactly one provider test with a local `.env` file:
-
-```sh
-node --env-file=.env node_modules/vitest/vitest.mjs run \
-  test/integration/tavily.live.test.ts
-```
-
-Replace `tavily` with `baidu`, `doubao`, `exa`, or `serper`. A test is skipped
-when none of its recognized credential variables is available. Use
-`pnpm test:live` only when you intentionally want to exercise every configured
-provider.
-
 ## Troubleshooting
 
 - `ConfigurationError`: the selected provider has no usable API key, or its
@@ -171,4 +128,5 @@ and `retryable`. Do not publish full upstream payloads without reviewing them.
   credential fields.
 
 Continue with the [API reference](api-reference.md) or the
+[provider guide](providers.md). Contributors should continue with the
 [development guide](development.md).

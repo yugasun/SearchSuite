@@ -83,7 +83,8 @@ items:
   regression.
 - Update the capability matrix in [Providers](docs/providers.md) when mapped
   capabilities change.
-- Update [CHANGELOG.md](CHANGELOG.md) for provider-visible behavior.
+- Update the provider guide and relevant public documentation for
+  provider-visible behavior.
 - Update [TECHNICAL_DESIGN.md](TECHNICAL_DESIGN.md) when engine syntax, public
   types, defaults, cancellation semantics, or request-count behavior changes.
 

@@ -5,8 +5,8 @@ Doubao, Tavily, Exa, and Serper through one typed search API.
 
 ## Use SearchSuite
 
-- [Getting started](getting-started.md) — build the pre-release package, configure
-  credentials, run a first search, and exercise one live provider test.
+- [Getting started](getting-started.md) — install the package, configure
+  credentials, run a first search, and troubleshoot common usage errors.
 - [Providers](providers.md) — choose an engine and understand credentials,
   provider options, limits, and the capability matrix.
 - [API reference](api-reference.md) — use the public request, response, warning,
@@ -28,7 +28,6 @@ Doubao, Tavily, Exa, and Serper through one typed search API.
   credentials or sensitive provider data.
 - [Support guide](../SUPPORT.md) — choose the right channel for questions, bugs,
   feature requests, and security reports.
-- [Changelog](../CHANGELOG.md) — review user-visible changes.
 
 ## Maintainer references
 

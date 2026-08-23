@@ -72,6 +72,5 @@ A dsh plugin is not part of this package or the v0.1 release.
 A roadmap idea becomes a candidate only when it has a demonstrated user need,
 a clear ownership boundary, testable behavior, and an understood impact on the
 public contract. Accepted behavior changes must be recorded in
-[`TECHNICAL_DESIGN.md`](../TECHNICAL_DESIGN.md) and
-[`CHANGELOG.md`](../CHANGELOG.md). The roadmap itself does not confer support or
-compatibility guarantees.
+[`TECHNICAL_DESIGN.md`](../TECHNICAL_DESIGN.md) and the relevant public guide.
+The roadmap itself does not confer support or compatibility guarantees.

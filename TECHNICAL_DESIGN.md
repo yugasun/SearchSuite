@@ -250,7 +250,7 @@ Provider factory 在该 Provider 首次初始化时解析配置，并由 Registr
 
 ## 9. 构建、测试与发布检查
 
-项目使用 pnpm 10.32.1、TypeScript strict、tsdown、Vitest 与 ESLint。
+项目使用 pnpm 10.32.1、TypeScript strict、tsdown、Vitest 与 Oxlint。
 
 默认 `pnpm test` 只运行 `test/unit` 与 `test/contract`，不得访问网络或消耗 Provider credits。`pnpm test:live` 只用于显式、凭据门控的真实集成检查。构建输出为 Node.js 24 ESM、`.d.ts` 与 source map，发布包保持零 runtime dependency。
 
@@ -282,7 +282,7 @@ CI 不运行 Live Test，也不创建 tarball。以下是发布前手工检查�
 - [x] Response、Result、Usage 与 Error 可保留安全 `raw`；
 - [x] Unit、Contract、类型与凭据门控 Live Test 已提供；
 - [x] ESM、类型声明、source map 构建与 publint 检查已提供；
-- [x] README、示例、能力矩阵、CHANGELOG 与 MIT License 已提供；
+- [x] README、示例、能力矩阵与 MIT License 已提供；
 - [x] 未包含 Router、retry、fallback、dsh plugin 等排除能力；
 - [ ] 完成公开文档与社区文件的最终复核；
 - [ ] 在干净 Node.js 24 环境完成 tarball ESM 与声明 smoke test；
@@ -296,7 +296,6 @@ CI 不运行 Live Test，也不创建 tarball。以下是发布前手工检查�
 
 - 更新单元、contract 与类型测试；
 - 更新本文件与对应公开指南；
-- 更新 `CHANGELOG.md`；
 - 更新 Provider 行为时同时更新 capability matrix 与回归 fixture。
 
 本地规划、设计过程与架构决策笔记不纳入版本控制，也不作为公开契约来源。
@@ -310,4 +309,3 @@ CI 不运行 Live Test，也不创建 tarball。以下是发布前手工检查�
 - [Architecture](docs/architecture.md)
 - [Roadmap](docs/roadmap.md)
 - [Documentation index](docs/README.md)
-- [Changelog](CHANGELOG.md)

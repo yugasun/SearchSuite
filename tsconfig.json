@@ -14,5 +14,5 @@
     "skipLibCheck": true,
     "types": ["node", "vitest/globals"]
   },
-  "include": ["src", "test", "examples", "eslint.config.js", "tsdown.config.ts", "vitest.config.ts"]
+  "include": ["src", "test", "examples", "tsdown.config.ts", "vitest.config.ts"]
 }

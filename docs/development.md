@@ -25,7 +25,8 @@ The scripts below are defined in [`package.json`](../package.json):
 | --- | --- |
 | `pnpm build` | Runs tsdown and writes the ESM bundle, declarations, and source maps to `dist/`. |
 | `pnpm typecheck` | Runs strict TypeScript checking without emitting files. It includes source, tests, examples, and type-consumer fixtures. |
-| `pnpm lint` | Runs ESLint across the repository. |
+| `pnpm lint` | Runs Oxlint across the repository. |
+| `pnpm lint:fix` | Applies Oxlint's safe automatic fixes. |
 | `pnpm test` | Runs only `test/unit` and `test/contract`; it is the offline default. |
 | `pnpm test:live` | Runs credential-gated integration tests and can access provider APIs or consume credits. |
 | `pnpm test:watch` | Starts Vitest watch mode for matching tests; live tests remain credential-gated. |
@@ -113,8 +114,8 @@ tar -tzf .tmp/searchsuite-0.1.0.tgz
 ```
 
 Use the filename printed by `pnpm pack` if the version changes. Confirm that the
-archive contains only the intended `dist`, README files, license, changelog, and
-package metadata, and contains no source credentials or `.env` file.
+archive contains only the intended `dist`, README files, license, and package
+metadata, and contains no changelog, source credentials, or `.env` file.
 
 Install the tarball in a clean Node.js 24 ESM consumer:
 
@@ -203,12 +204,12 @@ consumer, validate registry installation, or publish the package.
 
 | Change | Required follow-up |
 | --- | --- |
-| Provider request/response behavior | Update mocked tests, fixtures, [Providers](providers.md), and [CHANGELOG](../CHANGELOG.md). |
-| Provider capability flag | Update contract coverage, the capability matrix in [Providers](providers.md), and the changelog. |
-| Engine or `providerOptions` type | Add type-inference coverage and update [Providers](providers.md), [API reference](api-reference.md), [technical design](../TECHNICAL_DESIGN.md), and the changelog. |
-| Public request, response, error, default, or cancellation behavior | Update tests, [API reference](api-reference.md), technical design, and the changelog. |
-| Build, test, or release workflow | Update this guide and the changelog when user-visible. |
+| Provider request/response behavior | Update mocked tests, fixtures, and [Providers](providers.md). |
+| Provider capability flag | Update contract coverage and the capability matrix in [Providers](providers.md). |
+| Engine or `providerOptions` type | Add type-inference coverage and update [Providers](providers.md), [API reference](api-reference.md), and [technical design](../TECHNICAL_DESIGN.md). |
+| Public request, response, error, default, or cancellation behavior | Update tests, [API reference](api-reference.md), and technical design. |
+| Build, test, or release workflow | Update this guide when user-visible. |
 
 Keep local planning and design-history notes outside the published documentation
-set. Public behavior and its rationale belong in `TECHNICAL_DESIGN.md` and
-`CHANGELOG.md`.
+set. Public behavior and its rationale belong in `TECHNICAL_DESIGN.md` and the
+corresponding public guide.
