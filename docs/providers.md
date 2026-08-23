@@ -214,7 +214,7 @@ answer from organic snippets.
 | `includeDomains` | — | — | Yes | — | — |
 | `excludeDomains` | — | — | Yes | — | — |
 | `timeRange` | — | — | Yes | — | — |
-| Text/content mapping | — | Yes | Yes | Yes | Yes |
+| Normalized result text/snippet | — | Yes | Yes | Yes | Yes |
 | Provider score mapping | — | — | Yes | — | — |
 
 A capability means that the current SearchSuite adapter maps the common contract

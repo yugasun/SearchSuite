@@ -1,10 +1,10 @@
 # SearchSuite 技术设计总览
 
-状态：Approved for implementation
+状态：Implemented (pre-release; documentation refresh in progress)
 
 目标版本：v0.1.0
 
-最后更新：2026-08-22
+最后更新：2026-08-23
 
 ## 1. 问题与方案
 
@@ -213,17 +213,19 @@ Provider 在第一次使用时解析配置。支持注入 `fetch`，便于测试
 
 ## 10. v0.1 完成定义
 
-- [ ] `searchsuite` 可在 Node.js 24+ 纯 ESM 项目安装和导入
-- [ ] `SearchSuite.search()` 与 engine/options 类型推导稳定
-- [ ] 五个首发 Provider 可调用并惰性加载
-- [ ] 统一请求、answer、results、usage、capability、warning 和异常契约
-- [ ] 支持显式配置、环境变量、注入 fetch 与 AbortSignal
-- [ ] Provider/Response/Result 的 safe raw 得到保留
-- [ ] Unit、Contract、类型和可选 Live Test 完成
-- [ ] `pnpm pack` 后在干净环境通过 ESM 与类型 smoke test
-- [ ] README、示例、能力矩阵、CHANGELOG 与 MIT License 完成
-- [ ] 不包含 v0.1 明确排除的 Router、dsh plugin 等能力
+- [x] `searchsuite` 本地包可在 Node.js 24+ 纯 ESM 项目安装和导入
+- [x] `SearchSuite.search()` 与 engine/options 类型推导已实现并通过类型测试
+- [x] 五个首发 Provider 已实现并通过显式 Registry 惰性加载
+- [x] 统一请求、answer、results、usage、capability、warning 和异常契约
+- [x] 支持显式配置、环境变量、注入 fetch 与 AbortSignal
+- [x] Provider/Response/Result 的 safe raw 得到保留
+- [x] Unit、Contract、类型和凭据门控的可选 Live Test 已实现
+- [x] `pnpm pack` 后在干净环境通过 ESM 与类型 smoke test
+- [x] README、示例、能力矩阵、CHANGELOG 与 MIT License 已提供
+- [x] 未包含 v0.1 明确排除的 Router、dsh plugin 等能力
+- [ ] 完成本轮公开文档重构与发布前复核
+- [ ] 发布 `searchsuite` 到 npm，并验证从 registry 安装的产物
 
 ## 11. 文档导航
 
-实现细节见 [docs/README.md](docs/README.md)，完整批准设计见 [TypeScript SDK Design](docs/superpowers/specs/2026-08-22-typescript-sdk-design.md)。
+公开文档与实现细节见 [docs/README.md](docs/README.md)。
