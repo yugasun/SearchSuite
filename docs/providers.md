@@ -214,12 +214,14 @@ answer from organic snippets.
 | `includeDomains` | — | — | Yes | — | — |
 | `excludeDomains` | — | — | Yes | — | — |
 | `timeRange` | — | — | Yes | — | — |
-| Normalized result text/snippet | — | Yes | Yes | Yes | Yes |
+| `content` capability flag | — | Yes | Yes | Yes | Yes |
 | Provider score mapping | — | — | Yes | — | — |
 
 A capability means that the current SearchSuite adapter maps the common contract
 for that provider. It is not a claim about every feature available in the
-upstream provider API.
+upstream provider API. The `content` row reports the adapter-declared common
+capability flag; individual adapters may still map ordinary result snippets when
+that flag is false.
 
 Unsupported common parameters follow `unsupportedParamMode`, which defaults to
 `'warn'`:

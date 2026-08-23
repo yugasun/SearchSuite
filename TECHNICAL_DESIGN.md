@@ -208,7 +208,8 @@ Provider 在第一次使用时解析配置。支持注入 `fetch`，便于测试
 - TypeScript strict + tsdown 构建 ESM、`.d.ts` 和 sourcemap。
 - Vitest 覆盖 Core、Provider Mapping、Type Inference 和公共 Contract。
 - Live Test 由 Provider 环境变量保护，默认跳过。
-- CI 在 Node.js 24 和 Node Current 执行 typecheck、lint、test、build、publint、类型包检查和 pack smoke test。
+- CI 在 Node.js 24 和 Node Current 执行依赖安装、typecheck、lint、离线 test、build 和 publint。
+- pack 后的 ESM 与类型 smoke test 是当前的本地发布门禁，尚未进入 CI workflow。
 - 发布包必须保持零 runtime dependency。
 
 ## 10. v0.1 完成定义
