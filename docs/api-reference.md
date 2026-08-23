@@ -81,7 +81,7 @@ Every provider returns [`SearchResponse`](../src/types.ts):
 
 | Field | Meaning |
 | --- | --- |
-| `query` | The normalized query actually sent through the adapter. |
+| `query` | The common normalized query passed to the adapter. An adapter may further truncate its upstream query. |
 | `engine` | The requested engine literal. |
 | `answer?` | A provider-supplied top-level answer; SearchSuite does not synthesize one from snippets. |
 | `results` | Normalized `SearchResult[]`. |
@@ -96,6 +96,10 @@ hostname or URL fallback. Results may also contain `snippet`, `content`,
 
 Scores preserve provider-local semantics. Core code does not normalize or
 compare scores across providers.
+
+`response.query` is not guaranteed to equal the final upstream query. Baidu and
+Doubao may truncate a query to their provider limits inside the adapter and emit
+a `PROVIDER_LIMIT` warning; the response retains the common normalized value.
 
 ## Warnings and capability policy
 
