@@ -1,6 +1,6 @@
 # SearchSuite 技术设计总览
 
-状态：Implemented (pre-release; documentation refresh in progress)
+状态：已实现（pre-release，尚未发布到 npm）
 
 目标版本：v0.1.0
 
@@ -10,14 +10,14 @@
 
 搜索服务在参数、结果结构、认证、异常、能力和计费信息上均不一致。SearchSuite 在应用与 Provider 之间增加一个纯 TypeScript 兼容层，使开发者通过同一个 npm SDK 接入和切换搜索服务。
 
-项目源于 `dsh-web-search` 的 DeepSeek Harness 插件实践，但核心 SDK 不依赖 dsh。未来 `dsh-web-search` 可以复用 SearchSuite 的 Provider 层，同时继续独立维护 UI、credentials、auto/failover 和 `web_fetch`。
+项目源于 `dsh-web-search` 的 DeepSeek Harness 插件实践，但核心 SDK 不依赖 dsh。未来 `dsh-web-search` 可以作为 SearchSuite 的消费者，继续独立维护 UI、credentials、auto/failover 和 `web_fetch`。
 
 ```text
 Application / Agent / RAG / dsh-web-search
                      │
               SearchSuite.search()
                      │
-          Validate / Normalize / Warn
+       Parse / Normalize / Capability Policy
                      │
            Explicit Lazy Registry
                      │
@@ -27,30 +27,30 @@ Application / Agent / RAG / dsh-web-search
               Native fetch API
 ```
 
-v0.1 只实现统一 Search API 和 Provider Adapter。自动选择、fallback、retry、路由和搜索组合属于后续上层能力。
+v0.1 只实现统一 Search API 和五个 Provider Adapter。自动选择、fallback、retry、路由、搜索组合与框架插件均不在当前版本内。
 
 ## 2. v0.1 设计基线
 
 | 主题 | 决策 |
-|---|---|
+| --- | --- |
 | 产品定位 | “aisuite for Search” |
 | 包名 | `searchsuite` |
 | 语言 | TypeScript strict |
-| 最低运行时 | Node.js 24 LTS |
+| 最低运行时 | Node.js 24 |
 | 模块格式 | ESM only，`"type": "module"` |
 | 主接口 | `await client.search({...})` |
 | Provider 选择 | `<provider>:<engine>` |
 | HTTP | Node 原生 `fetch` / `AbortSignal` |
 | runtime dependency | 0 |
 | 内置 Provider 发现 | 显式注册表 + 动态 import |
-| Provider 独有参数 | engine 感知的 `providerOptions` |
-| 原始数据 | Response、Result、Usage 均可保留安全 `raw` |
+| Provider 独有参数 | engine 感知的 `providerOptions`，同时做运行时白名单校验 |
+| 原始数据 | Response、Result、Usage、Error 可保留经清理的安全 `raw` |
 | 默认兼容模式 | `warn`，通过 `onWarning` 输出 |
 | dsh 集成 | 不进入 v0.1；核心保持框架无关 |
 
-Node.js 24 是本文档编写时的最新 LTS；`package.json` 固定 `engines.node: ">=24"`，而不是使用随时间变化的“当前 LTS”文字条件。参见 [Node.js Releases](https://nodejs.org/en/about/previous-releases)。
+`package.json` 固定 `engines.node: ">=24"`，不使用会随时间变化的“当前 LTS”作为安装条件。
 
-## 3. 目标 API
+## 3. 公共 API
 
 ```ts
 import { SearchSuite } from 'searchsuite'
@@ -62,7 +62,7 @@ const client = new SearchSuite({
   },
   timeoutMs: 30_000,
   unsupportedParamMode: 'warn',
-  onWarning: (warning) => logger.warn(warning),
+  onWarning: (warning) => console.warn(warning),
 })
 
 const response = await client.search({
@@ -79,7 +79,17 @@ const response = await client.search({
 })
 ```
 
-TypeScript 根据 `engine` 推导合法 `providerOptions`。SDK 只有异步 API，不提供 `asearch` 别名，也不提供无资源可释放的 `close()`。
+TypeScript 根据 `engine` 字面量推导合法 `providerOptions` 与响应 engine 类型。SDK 只有异步 `search()`，不提供冗余 `asearch`，也不提供无资源可释放的 `close()`。
+
+构造器默认值与约束：
+
+- `timeoutMs` 默认 `30_000`，必须为正的有限数；
+- `unsupportedParamMode` 默认 `warn`；
+- `providers` 默认空配置，Provider 首次使用时再解析显式配置与环境变量；
+- `fetch` 默认 `globalThis.fetch`，可注入用于测试或受控运行时；
+- `onWarning` 默认不设置。
+
+完整公共契约见 [API reference](docs/api-reference.md)。
 
 ## 4. 首发 engine
 
@@ -102,17 +112,17 @@ exa:neural
 serper:google
 ```
 
-这些 engine 来自现有 `dsh-web-search` 已验证的 API 模式。Serper News/Images、SearXNG 和其他 Provider 后续按真实需求增加。
+不得在缺少真实需求、适配实现、mock contract 与类型测试时增加 speculative engine。
 
-## 5. 包结构
+## 5. 实际代码结构
 
 ```text
 src/
 ├── index.ts
 ├── client.ts
+├── provider.ts
 ├── types.ts
 ├── capabilities.ts
-├── config.ts
 ├── errors.ts
 ├── registry.ts
 ├── warnings.ts
@@ -120,7 +130,9 @@ src/
 │   ├── engine.ts
 │   ├── http.ts
 │   ├── normalize.ts
-│   └── redact.ts
+│   ├── provider-utils.ts
+│   ├── redact.ts
+│   └── signal.ts
 └── providers/
     ├── baidu.ts
     ├── doubao.ts
@@ -129,9 +141,35 @@ src/
     └── serper.ts
 
 test/
+├── helpers.ts
+├── setup.ts
 ├── contract/
+│   └── provider-contract.test.ts
+├── fixtures/
+│   ├── baidu.ts
+│   ├── doubao.ts
+│   ├── tavily.ts
+│   ├── exa.ts
+│   └── serper.ts
 ├── integration/
+│   ├── baidu.live.test.ts
+│   ├── doubao.live.test.ts
+│   ├── tavily.live.test.ts
+│   ├── exa.live.test.ts
+│   ├── serper.live.test.ts
+│   └── live-timeout.ts
+├── typecheck/
+│   └── consumer.ts
 └── unit/
+    ├── client.test.ts
+    ├── engine.test.ts
+    ├── errors.test.ts
+    ├── http.test.ts
+    ├── normalize.test.ts
+    ├── redact.test.ts
+    ├── registry.test.ts
+    ├── signal.test.ts
+    ├── types.test.ts
     └── providers/
 
 examples/
@@ -141,93 +179,132 @@ examples/
 └── provider-options.ts
 ```
 
-不要在完成至少三个 Provider 前抽取复杂 HTTP 基类。可以共享小型纯函数，例如 JSON 解析、状态码映射和秘密清理。
+保持 Provider Adapter 精简。只有在至少三个 Provider 已证明存在相同需求时，才考虑抽取更复杂的共享 HTTP 抽象；当前共享层只包含小型、可测试的函数。
 
 ## 6. 请求处理链路
 
 ```text
 SearchRequest<E>
-    │ parse engine + validate common fields
+    │ parse engine + combine caller/timeout signals
     ▼
 NormalizedSearchRequest<E>
-    │ capability / providerOptions validation
+    │ normalize common input + capability policy
     ▼
-lazy provider factory
-    │ map provider request
+explicit lazy provider factory (cached per provider)
+    │ resolve config + validate providerOptions
     ▼
 injected or global fetch
-    │ map HTTP / abort / timeout error
+    │ map HTTP / abort / timeout errors
     ▼
-provider response normalization
+provider response normalization + safe raw
     │ client measures monotonic latency
     ▼
 SearchResponse<E>
 ```
 
-职责：
+职责边界：
 
-- Client：公共校验、惰性缓存 Provider、兼容策略、组合 signal、测量端到端延迟。
-- Registry：维护受支持 Provider 与动态 import factory。
-- Provider：配置、engine/options 校验、请求映射、HTTP 调用、响应归一化、错误映射。
-- Types：只表达跨 Provider 可迁移的搜索概念，并提供 engine 级类型推导。
-- Router（未来）：选择 Provider；不得渗入 Adapter。
+- Client：公共编排、signal 组合、通用输入归一化、capability 策略、Provider 获取与端到端延迟；
+- Registry：显式维护五个动态 import factory，按 Provider 缓存初始化 Promise，失败时清除缓存；
+- Provider：解析配置、校验 engine/options、映射一次 Provider 请求、归一化响应与 Provider 限制 warning；
+- Types：表达跨 Provider 可迁移概念，并提供 engine 级类型推导；
+- Router（未来可选上层）：选择 Provider；不得渗入 Adapter 或改变核心单次请求语义。
+
+v0.1 中每次 `search()` 对应一个已选择 Provider 的一次请求，不存在隐藏 fallback 或多请求组合。
 
 ## 7. 关键契约
 
-- engine 格式必须为 `<provider>:<engine>`，只按第一个冒号分隔。
-- provider 名统一小写并由显式 Registry 验证；engine 由对应 Provider 验证。
-- `query.trim()` 不得为空；`maxResults` 必须是正整数。
-- `SearchResponse.answer` 保存 Provider 明确生成或返回的顶层答案；不存在时省略，不从 snippets 拼接伪造。
-- 每个结果必须有非空 `title` 和绝对 HTTP(S) URL；缺标题时使用 hostname/URL 生成稳定 fallback。
-- `score` 保留 Provider 本地语义，不做跨 Provider 标准化。
-- `publishedAt` 是可靠解析后的 ISO 8601 string，否则省略并保留原值在 `raw`。
-- `raw` 使用 `unknown`，只保存 JSON-compatible、安全清理后的数据。
-- v0.1 不自动 retry。错误上的 `retryable` 只是元数据。
-- 调用方取消产生 `SearchAbortedError`；SDK timeout 产生 `SearchTimeoutError`。
+- engine 格式必须为 `<provider>:<engine>`，只按第一个冒号分隔；
+- provider 名统一小写并由显式 Registry 验证，engine 由允许列表验证；
+- `query.trim()` 不得为空；`maxResults` 默认 10，必须是正安全整数；
+- domain 统一为小写 hostname、去重并移除尾部点，同一 domain 不得同时 include 与 exclude；
+- `SearchResponse.answer` 只保存 Provider 明确返回的顶层答案，不从 snippets 拼接；
+- 每个保留结果必须有非空 title 和绝对 HTTP(S) URL，缺标题时生成稳定 fallback；
+- `score` 保留 Provider 本地语义，不做跨 Provider 标准化；
+- `publishedAt` 只保存可靠解析后的 ISO 8601 string，原值可留在安全 `raw`；
+- `raw` 使用 `unknown`，只保存 Adapter 选择的 JSON-compatible、经清理数据；
+- Provider option 同时使用编译期类型与运行时白名单；
+- v0.1 不自动 retry，错误上的 `retryable` 仅为元数据；
+- 调用方取消产生 `SearchAbortedError`，SDK deadline 产生 `SearchTimeoutError`。
 
 ## 8. 配置、安全与网络
 
-配置优先级：
+每个配置字段按以下优先级解析：
 
 ```text
 显式 providers 配置 > 环境变量 > Provider 默认值
 ```
 
-Provider 在第一次使用时解析配置。支持注入 `fetch`，便于测试、代理和受控运行时；默认使用 `globalThis.fetch`。
+Provider 在处理搜索时解析配置。SDK 本身不加载 `.env`；应用或 Node.js `--env-file` 负责把变量放入 `process.env`。
 
-安全基线：
+安全边界：
 
-- 错误、warning、`cause` 摘要、URL 和 `raw` 不得暴露 API Key、token 或认证 Header。
-- SDK 不默认记录 query 或 response body。
-- Provider option 使用类型与运行时白名单双重校验。
-- timeout 和调用方 signal 都必须生效；先发生者决定取消原因。
+- 错误 message、URL、raw 与可序列化 metadata 清理已知 API key、token、secret 与 authorization 数据；
+- SDK 不默认记录 query 或 response body；
+- Provider option 使用运行时白名单；
+- timeout 和调用方 signal 同时生效，先发生者决定错误类型；
+- redaction 不能替代数据分级，应用在日志或转发 `raw` 前仍需复核。
 
-## 9. 构建与测试
+## 9. 构建、测试与发布检查
 
-- pnpm 管理依赖。
-- TypeScript strict + tsdown 构建 ESM、`.d.ts` 和 sourcemap。
-- Vitest 覆盖 Core、Provider Mapping、Type Inference 和公共 Contract。
-- Live Test 由 Provider 环境变量保护，默认跳过。
-- CI 在 Node.js 24 和 Node Current 执行依赖安装、typecheck、lint、离线 test、build 和 publint。
-- `pnpm pack` 后在干净 consumer 中执行 ESM 与类型 smoke test，是发布前待手动执行的 checklist 项，尚未进入 CI workflow。
-- 发布包必须保持零 runtime dependency。
+项目使用 pnpm 10.32.1、TypeScript strict、tsdown、Vitest 与 ESLint。
 
-## 10. v0.1 完成定义
+默认 `pnpm test` 只运行 `test/unit` 与 `test/contract`，不得访问网络或消耗 Provider credits。`pnpm test:live` 只用于显式、凭据门控的真实集成检查。构建输出为 Node.js 24 ESM、`.d.ts` 与 source map，发布包保持零 runtime dependency。
 
-- [x] `searchsuite` 本地包可在 Node.js 24+ 纯 ESM 项目安装和导入
-- [x] `SearchSuite.search()` 与 engine/options 类型推导已实现并通过类型测试
-- [x] 五个首发 Provider 已实现并通过显式 Registry 惰性加载
-- [x] 统一请求、answer、results、usage、capability、warning 和异常契约
-- [x] 支持显式配置、环境变量、注入 fetch 与 AbortSignal
-- [x] Provider/Response/Result 的 safe raw 得到保留
-- [x] Unit、Contract、类型和凭据门控的可选 Live Test 已实现
-- [x] ESM、类型声明和 sourcemap 构建及 publint 检查通过
-- [ ] 发布前执行 `pnpm pack`，并在干净 consumer 中完成 ESM 与类型 smoke test
-- [x] README、示例、能力矩阵、CHANGELOG 与 MIT License 已提供
-- [x] 未包含 v0.1 明确排除的 Router、dsh plugin 等能力
-- [ ] 完成本轮公开文档重构与发布前复核
-- [ ] 发布 `searchsuite` 到 npm，并验证从 registry 安装的产物
+当前 GitHub Actions 在 Node.js 24.x 与 Node Current 上实际执行：
 
-## 11. 文档导航
+1. `pnpm install --frozen-lockfile`
+2. `pnpm typecheck`
+3. `pnpm lint`
+4. `pnpm test`
+5. `pnpm build`
+6. `pnpm exec publint`
 
-公开文档与实现细节见 [docs/README.md](docs/README.md)。
+CI 不运行 Live Test，也不创建 tarball。以下是发布前手工检查：
+
+- `pnpm pack` 并检查 tarball 文件清单；
+- 在干净 Node.js 24 ESM consumer 中安装 tarball 并导入；
+- 在干净 TypeScript consumer 中验证声明路径与 engine/options 推导；
+- 发布后从 npm registry 安装并验证实际产物。
+
+详见 [Development](docs/development.md)。
+
+## 10. v0.1 状态与完成定义
+
+- [x] `searchsuite` 本地包可构建为 Node.js 24+ 纯 ESM 产物；
+- [x] `SearchSuite.search()` 与 engine/options 类型推导已实现；
+- [x] Baidu、Doubao、Tavily、Exa、Serper 通过显式 Registry 惰性加载；
+- [x] 统一请求、answer、result、usage、capability、warning 与异常契约；
+- [x] 支持显式配置、环境变量、注入 fetch 与 AbortSignal；
+- [x] Response、Result、Usage 与 Error 可保留安全 `raw`；
+- [x] Unit、Contract、类型与凭据门控 Live Test 已提供；
+- [x] ESM、类型声明、source map 构建与 publint 检查已提供；
+- [x] README、示例、能力矩阵、CHANGELOG 与 MIT License 已提供；
+- [x] 未包含 Router、retry、fallback、dsh plugin 等排除能力；
+- [ ] 完成公开文档与社区文件的最终复核；
+- [ ] 在干净 Node.js 24 环境完成 tarball ESM 与声明 smoke test；
+- [ ] 发布 `searchsuite` 到 npm，并验证 registry 安装产物。
+
+因此当前状态是“本地实现完成、发布准备中”，不是已正式发布。
+
+## 11. 变更控制
+
+修改 engine 语法、公共类型、默认模式、取消语义或请求次数时，必须同步：
+
+- 更新单元、contract 与类型测试；
+- 更新本文件与对应公开指南；
+- 更新 `CHANGELOG.md`；
+- 更新 Provider 行为时同时更新 capability matrix 与回归 fixture。
+
+本地规划、设计过程与架构决策笔记不纳入版本控制，也不作为公开契约来源。
+
+## 12. 公开文档导航
+
+- [Getting started](docs/getting-started.md)
+- [Providers](docs/providers.md)
+- [API reference](docs/api-reference.md)
+- [Development](docs/development.md)
+- [Architecture](docs/architecture.md)
+- [Roadmap](docs/roadmap.md)
+- [Documentation index](docs/README.md)
+- [Changelog](CHANGELOG.md)

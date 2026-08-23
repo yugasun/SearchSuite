@@ -35,5 +35,5 @@ Doubao, Tavily, Exa, and Serper through one typed search API.
 - [Open-source documentation practices](research/2026-08-23-open-source-documentation-practices.md)
 
 The root [README](../README.md) is the shortest route to installation and a first
-request. This index intentionally excludes local planning artifacts from public
-navigation.
+request. Local planning and design-history artifacts are not part of this public
+documentation set.
