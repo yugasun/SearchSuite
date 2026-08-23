@@ -45,6 +45,29 @@ await client.search({
   },
 })
 
+const doubaoCustom = await client.search({
+  provider: 'doubao',
+  query: 'custom search',
+  providerOptions: { mode: 'custom', needSummary: true },
+})
+const doubaoGlobal = await client.search({
+  provider: 'doubao',
+  query: 'global search',
+  providerOptions: { mode: 'global', maxSnippetLength: 800 },
+})
+void doubaoCustom
+void doubaoGlobal
+
+await client.search({
+  provider: 'doubao',
+  query: 'custom search',
+  providerOptions: {
+    mode: 'custom',
+    // @ts-expect-error maxSnippetLength is only valid for Doubao global search.
+    maxSnippetLength: 800,
+  },
+})
+
 const fetched = await client.fetch({
   provider: 'exa',
   url: 'https://example.com/article',

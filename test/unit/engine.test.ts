@@ -32,6 +32,12 @@ describe('engine parsing', () => {
       full: 'baidu:ai',
       providerOptions: { model: 'custom-model' },
     })
+    expect(resolveProviderEngine('doubao', { mode: 'global', maxSnippetLength: 800 })).toEqual({
+      provider: 'doubao',
+      name: 'global',
+      full: 'doubao:global',
+      providerOptions: { maxSnippetLength: 800 },
+    })
     expect(resolveProviderEngine('exa', { searchType: 'neural', highlightsPerUrl: 2 })).toMatchObject({
       provider: 'exa',
       full: 'exa:neural',
