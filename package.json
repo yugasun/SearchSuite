@@ -55,9 +55,15 @@
     "test": "vitest run test/unit test/contract",
     "test:live": "vitest run test/integration",
     "test:watch": "vitest",
-    "pack:check": "pnpm build && pnpm exec publint"
+    "pack:check": "pnpm build && pnpm exec publint",
+    "check": "pnpm typecheck && pnpm lint && pnpm test && pnpm build && pnpm exec publint",
+    "changeset": "changeset",
+    "changeset:status": "changeset status",
+    "version-packages": "changeset version",
+    "release": "changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "3.0.1",
     "@types/node": "^24.0.0",
     "oxlint": "^1.79.0",
     "publint": "^0.3.0",

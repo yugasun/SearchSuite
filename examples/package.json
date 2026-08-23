@@ -1,6 +1,7 @@
 {
   "name": "examples",
   "version": "1.0.0",
+  "private": true,
   "description": "",
   "type": "module",
   "scripts": {
@@ -12,7 +13,7 @@
   "license": "ISC",
   "packageManager": "pnpm@10.32.1",
   "dependencies": {
-    "searchsuite": "link:.."
+    "searchsuite": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
