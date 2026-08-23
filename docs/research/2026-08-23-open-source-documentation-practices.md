@@ -101,12 +101,12 @@ docs/
   testing.md
   architecture.md
   roadmap.md
-  adr/
+  adr/                       # optional local notes; ignored by this project
 ```
 
 每份 Provider 文档固定包含：支持的 engine、认证配置和环境变量、公共参数映射、typed `providerOptions`、上游限制、标准化字段、错误映射、最小示例、Live Test 方法以及上游官方 API 链接。固定模板能降低五个 Provider 文档逐渐漂移的风险。
 
-`TECHNICAL_DESIGN.md` 应保留为设计基线，不充当用户 API 文档。公共行为变更由 API/Provider 文档面向用户说明，架构决策由 ADR 解释原因，CHANGELOG 面向版本列出结果，避免同一事实在四个地方以不同措辞维护。
+`TECHNICAL_DESIGN.md` 应保留为设计基线，不充当用户 API 文档。公共行为变更由 API/Provider 文档面向用户说明，架构决策与原因记录在技术设计中，CHANGELOG 面向版本列出结果，避免同一事实在多个地方以不同措辞维护。SearchSuite 已决定将 `docs/adr/` 保留为本地忽略目录，不把 ADR 提交到 Git。
 
 ### API Reference
 
@@ -133,7 +133,7 @@ SearchSuite 的贡献指南建议包含：
 - 常用验证：`typecheck`、`lint`、offline tests、build、publint/pack check；说明普通测试不得联网。
 - Live tests：显式 opt-in、需要哪些环境变量、如何用 Node `--env-file=.env`、为什么不能把凭据或完整原始响应贴进 Issue/CI 日志。
 - 新 Provider/engine 的贡献流程：先对齐设计范围，再实现 typed options、runtime validation、mock request/response/error/cancellation、common contract、能力矩阵与 changelog。
-- 公共行为变更清单：何时必须更新 API 文档、Provider matrix、CHANGELOG 和新增 ADR。
+- 公共行为变更清单：何时必须更新 API 文档、Provider matrix、CHANGELOG 和技术设计决策记录。
 - 代码规范：ESM、严格 TypeScript、native Web APIs、零 runtime dependency、thin adapter，以及 v0.1 禁止的 routing/retry/cache 等范围。
 - PR 约定：小而聚焦、关联 Issue、说明测试证据、标出 breaking change；不要要求某种提交格式，除非 release automation 实际验证它。
 - 维护者期望：review 时效可以不承诺具体 SLA，但应说明 maintainer 可能关闭无复现、含凭据或超范围请求。
@@ -190,7 +190,7 @@ PR 模板建议检查：
 - 关联 Issue 与变更摘要。
 - 测试证据；offline tests 未联网、未消耗 Provider credits。
 - 新 Provider/兼容性修复是否含 regression fixture 和 contract tests。
-- 公共行为是否更新 API 文档、Provider matrix、CHANGELOG；需要时是否新增 ADR。
+- 公共行为是否更新 API 文档、Provider matrix、CHANGELOG 和技术设计决策记录。
 - 是否保持 ESM-only、Node 24+、零 runtime dependency 和薄 Adapter。
 - 是否检查示例、fixture、日志和 `raw` 中没有凭据或用户敏感数据。
 
@@ -202,7 +202,7 @@ SearchSuite 应公开写明自己的 v0.x 规则，例如：
 
 - `0.y.0` 可以包含明确记录的 breaking public API change。
 - `0.y.z` 的 patch 只包含兼容修复和文档/内部变更。
-- engine syntax、公开模型、默认模式、取消语义或请求次数发生变化时，除 CHANGELOG 外必须新增 ADR。
+- engine syntax、公开模型、默认模式、取消语义或请求次数发生变化时，除 CHANGELOG 外必须更新 `TECHNICAL_DESIGN.md` 中的决策记录。
 
 CHANGELOG 建议遵循当前 Keep a Changelog 2.0.0：保留 `[Unreleased]`，每个版本使用 `YYYY-MM-DD` 日期，按 Added/Changed/Deprecated/Removed/Fixed/Security 分组，最新版本在上，给版本和 compare 链接，并显式标记 breaking entries。仓库内 CHANGELOG 应是规范来源，GitHub Release notes 是发布视图而不是唯一历史。[Keep a Changelog 2.0.0](https://keepachangelog.com/en/2.0.0/)
 
@@ -304,7 +304,7 @@ SearchSuite 当前方向下的推荐字段：
 - 所有仓库相对链接可用；没有未来仓库地址、邮箱、npm 版本或徽章占位符。
 - 普通测试说明明确离线；Live tests 显式 opt-in 且不会打印凭据。
 - Issue 表单不会诱导用户提交 Key、Authorization header 或未脱敏 raw response。
-- 公共 API、Provider 行为、CHANGELOG 和 ADR 的更新责任边界清晰。
+- 公共 API、Provider 行为、CHANGELOG 和技术设计决策记录的更新责任边界清晰。
 - `npm pack` 产物只含预期文件，干净项目可 ESM import 且能解析 `.d.ts`。
 - `SECURITY.md` 的私密报告渠道真实可达。
 - npm 发布工作流使用最小权限与 Trusted Publishing，并产生 provenance。

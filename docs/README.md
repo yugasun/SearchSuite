@@ -20,8 +20,6 @@ Doubao, Tavily, Exa, and Serper through one typed search API.
   provider adapter boundary, and v0.1 non-goals.
 - [Roadmap](roadmap.md) — see the planned work beyond the v0.1 compatibility
   layer.
-- [Architecture decision records](adr/0001-v0.1-architecture-baseline.md) — review
-  the accepted v0.1 runtime, module, API, and provider decisions.
 - [Technical design](../TECHNICAL_DESIGN.md) — read the implementation baseline
   and invariants.
 - [Contributing guide](../CONTRIBUTING.md) — prepare a change or add provider
