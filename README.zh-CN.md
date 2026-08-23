@@ -30,7 +30,7 @@ SearchSuite 提供 TypeScript 类型声明，并使用 Node.js 提供的 Web Pla
 
 ## 从本地包安装
 
-该包尚未发布到 npm。克隆仓库、完成构建，并生成与未来发布内容一致的 tarball：
+该包尚未发布到 npm。克隆仓库、完成构建，并生成一个符合 npm 预期发布包结构的本地 tarball：
 
 ```sh
 git clone https://github.com/yugasun/SearchSuite.git
@@ -105,7 +105,7 @@ const response = await client.search({
 | Exa | `exa:auto`, `exa:keyword`, `exa:neural` | `EXA_API_KEY` |
 | Serper | `serper:google` | `SERPER_API_KEY` |
 
-有关通用参数支持、限制、标准化字段和 Provider 特有行为，请参阅 [Provider 指南和能力矩阵](https://github.com/yugasun/SearchSuite/blob/main/docs/providers.md)。Score 保留各 Provider 自身的语义，不应跨 Provider 比较。
+有关通用参数支持、限制、标准化字段和 Provider 特有行为，请参阅 [Provider 指南和能力矩阵](https://github.com/yugasun/SearchSuite/blob/main/docs/providers.md)。`score` 保留各 Provider 自身的语义，不应跨 Provider 比较。
 
 ## 配置
 
@@ -157,7 +157,7 @@ const response = await client.search({
 })
 ```
 
-例如，TypeScript 会拒绝为 `tavily:basic` 设置 `chunksPerSource`，因为该选项只属于 advanced Engine。
+例如，TypeScript 会拒绝为 `tavily:basic` 设置 `chunksPerSource`，因为该选项仅适用于 `tavily:advanced` 引擎。
 
 ## 错误、超时和取消
 

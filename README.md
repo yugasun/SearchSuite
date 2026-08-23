@@ -30,7 +30,7 @@ SearchSuite ships TypeScript declarations and uses the Web Platform `fetch`, `Ab
 
 ## Install from a local package
 
-The package is not on npm yet. Clone the repository, build it, and create the same tarball that will eventually be published:
+The package is not on npm yet. Clone the repository, build it, and create a local tarball with the package structure intended for npm publishing:
 
 ```sh
 git clone https://github.com/yugasun/SearchSuite.git
