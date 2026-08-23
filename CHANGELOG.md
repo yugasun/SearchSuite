@@ -10,6 +10,10 @@
 - Typed `provider:engine` requests, provider options, normalized responses, errors, cancellation, and contract tests.
 - Offline `pnpm test` excludes credential-gated Live tests; run `pnpm test:live` explicitly.
 
+### Fixed
+
+- Increased credential-gated Live test timeouts so slower provider responses can reach the SDK timeout instead of Vitest's default 5-second limit.
+
 ### Known limitations
 
 - v0.1 does not include dsh integration, `web_fetch`, Router, fallback, retry, caching, multi-key credentials, or search composition.

@@ -1,4 +1,5 @@
 import { SearchSuite } from '../../src/index.js'
+import { LIVE_TEST_TIMEOUT_MS } from './live-timeout.js'
 
 const key = process.env.BAIDU_API_KEY ?? process.env.QIANFAN_API_KEY
 
@@ -7,4 +8,4 @@ test.skipIf(!key)('Baidu live contract', async () => {
   const response = await client.search({ engine: 'baidu:web', query: 'Node.js', maxResults: 1 })
   expect(response.engine).toBe('baidu:web')
   expect(Array.isArray(response.results)).toBe(true)
-})
+}, LIVE_TEST_TIMEOUT_MS)

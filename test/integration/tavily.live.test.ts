@@ -1,4 +1,5 @@
 import { SearchSuite } from '../../src/index.js'
+import { LIVE_TEST_TIMEOUT_MS } from './live-timeout.js'
 
 const key = process.env.TAVILY_API_KEY
 
@@ -7,4 +8,4 @@ test.skipIf(!key)('Tavily live contract', async () => {
   const response = await client.search({ engine: 'tavily:basic', query: 'Node.js', maxResults: 1 })
   expect(response.engine).toBe('tavily:basic')
   expect(Array.isArray(response.results)).toBe(true)
-})
+}, LIVE_TEST_TIMEOUT_MS)
