@@ -41,7 +41,8 @@
     }
   },
   "files": [
-    "dist",
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
     "README.md",
     "README.zh-CN.md",
     "LICENSE"

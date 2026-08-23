@@ -27,6 +27,21 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@24.13.3)
 
+  examples:
+    dependencies:
+      '@types/node':
+        specifier: ^24.13.3
+        version: 24.13.3
+      searchsuite:
+        specifier: ^0.1.0
+        version: 0.1.0
+      tsdown:
+        specifier: ^0.22.14
+        version: 0.22.14(publint@0.3.24)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
 packages:
 
   '@esbuild/aix-ppc64@0.28.2':
@@ -883,6 +898,10 @@ packages:
     resolution: {integrity: sha512-xal3CZX1Xlo/k4ApwCFrHVACi9fBqJ7V+mwhBsuf/1IOKbBy098Fex+Wa/5QMubw09pSZ/u8EY8PWgevJsXp1A==}
     engines: {node: '>=6'}
 
+  searchsuite@0.1.0:
+    resolution: {integrity: sha512-iEtec2GyNxa6tz8dBWCkeDVxiWF5rAUB0kWflkqXPe8kOaAINoOW8EyRd3sx4BGcnj6xqXcpQxK+4U28qD/FjQ==}
+    engines: {node: '>=24'}
+
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
 
@@ -1653,6 +1672,8 @@ snapshots:
   sade@1.8.1:
     dependencies:
       mri: 1.2.0
+
+  searchsuite@0.1.0: {}
 
   siginfo@2.0.0: {}
 

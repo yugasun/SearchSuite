@@ -91,6 +91,10 @@ commit the file or print credentials in test output.
 - source maps;
 - dynamically imported provider chunks.
 
+The published file allowlist includes only `dist/**/*.js` and `dist/**/*.d.ts`;
+source maps remain available in the local build but are excluded from the npm
+tarball.
+
 The published package must retain `"type": "module"`, an import-only export,
 Node.js `>=24`, and zero runtime dependencies. `pnpm exec publint` validates the
 package metadata against the built artifact.
