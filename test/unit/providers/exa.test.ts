@@ -23,5 +23,15 @@ describe('Exa provider', () => {
       expect.objectContaining({ body: expect.stringContaining('"type":"neural"') }),
     )
   })
-})
 
+  test('rejects non-finite highlight counts before requesting', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+    const provider = createExaProvider(makeContext(fetcher, { exa: { apiKey: 'test-key' } }))
+
+    await expect(provider.search(makeRequest('exa:neural', {
+      providerOptions: { highlightsPerUrl: Number.NaN },
+    }), makeSearchContext(fetcher, { exa: { apiKey: 'test-key' } })))
+      .rejects.toMatchObject({ code: 'INVALID_REQUEST', provider: 'exa' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+})

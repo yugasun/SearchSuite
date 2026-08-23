@@ -1,4 +1,4 @@
-import { InvalidEngineError } from '../errors.js'
+import { InvalidEngineError, InvalidRequestError } from '../errors.js'
 import type { ProviderId, SearchEngine } from '../types.js'
 
 const ENGINE_ALLOWLIST: Record<ProviderId, readonly string[]> = {
@@ -27,10 +27,29 @@ function isProviderId(value: string): value is ProviderId {
   return Object.hasOwn(ENGINE_ALLOWLIST, value)
 }
 
-function optionRecord(value: unknown): Record<string, unknown> {
-  return value !== null && typeof value === 'object' && !Array.isArray(value)
-    ? { ...(value as Record<string, unknown>) }
-    : {}
+function optionRecord(value: unknown, provider: ProviderId): Record<string, unknown> {
+  if (value === undefined) return {}
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new InvalidRequestError('providerOptions must be an object', {
+      provider,
+      operation: 'search',
+    })
+  }
+  return { ...(value as Record<string, unknown>) }
+}
+
+function validateSelectionOption(provider: ProviderId, options: Record<string, unknown>): void {
+  const key = provider === 'tavily' ? 'searchDepth'
+    : provider === 'exa' ? 'searchType'
+      : provider === 'baidu' || provider === 'doubao' ? 'mode'
+        : undefined
+  if (key === undefined || options[key] === undefined) return
+  if (typeof options[key] !== 'string') {
+    throw new InvalidRequestError(`Provider option '${key}' must be a string`, {
+      provider,
+      operation: 'search',
+    })
+  }
 }
 
 function selectedEngine(provider: ProviderId, options: Record<string, unknown>): string {
@@ -76,7 +95,8 @@ export function resolveProviderEngine(providerValue: string, providerOptions?: u
     throw new InvalidEngineError('Unknown search provider', { value: providerValue })
   }
 
-  const options = optionRecord(providerOptions)
+  const options = optionRecord(providerOptions, provider)
+  validateSelectionOption(provider, options)
   const name = selectedEngine(provider, options)
   if (!ENGINE_ALLOWLIST[provider].includes(name)) {
     throw new InvalidEngineError('Unknown search mode for provider', {

@@ -4,6 +4,7 @@ import {
   mapUsage,
   normalizedResult,
   providerOptions,
+  providerOptionRules,
   record,
   resolveProviderConfig,
   safeRaw,
@@ -44,6 +45,14 @@ export function createTavilyProvider(context: ProviderContext): SearchProvider {
         searchContext,
         'tavily',
         engine,
+        {
+          topic: providerOptionRules.oneOf(['general', 'news', 'finance']),
+          includeAnswer: providerOptionRules.oneOfOrBoolean(['basic', 'advanced']),
+          includeRawContent: providerOptionRules.oneOfOrBoolean(['markdown', 'text']),
+          ...(depth === 'advanced'
+            ? { chunksPerSource: providerOptionRules.oneOf([1, 2, 3]) }
+            : {}),
+        },
       )
       const maxResults = clampMaxResults(request.maxResults, 20, searchContext, engine)
       const body: Record<string, unknown> = {

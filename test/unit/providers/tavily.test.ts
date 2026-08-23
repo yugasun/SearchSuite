@@ -31,5 +31,15 @@ describe('Tavily provider', () => {
       }),
     )
   })
-})
 
+  test('rejects invalid option values before requesting', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+    const provider = createTavilyProvider(makeContext(fetcher, { tavily: { apiKey: 'test-key' } }))
+
+    await expect(provider.search(makeRequest('tavily:basic', {
+      providerOptions: { topic: 'invalid' as 'general' },
+    }), makeSearchContext(fetcher, { tavily: { apiKey: 'test-key' } })))
+      .rejects.toMatchObject({ code: 'INVALID_REQUEST', provider: 'tavily' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+})

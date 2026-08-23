@@ -23,5 +23,15 @@ describe('Serper provider', () => {
       expect.objectContaining({ body: expect.stringContaining('"gl":"us"') }),
     )
   })
-})
 
+  test('rejects non-string locale options before requesting', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+    const provider = createSerperProvider(makeContext(fetcher, { serper: { apiKey: 'test-key' } }))
+
+    await expect(provider.search(makeRequest('serper:google', {
+      providerOptions: { gl: 1 as unknown as string },
+    }), makeSearchContext(fetcher, { serper: { apiKey: 'test-key' } })))
+      .rejects.toMatchObject({ code: 'INVALID_REQUEST', provider: 'serper' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+})

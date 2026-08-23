@@ -23,10 +23,9 @@ export function createExaFetchProvider(context: ProviderContext): FetchProvider<
         ['maxCharacters'],
         'exa',
       )
-      const maxCharacters = typeof options.maxCharacters === 'number'
-        ? options.maxCharacters
-        : DEFAULT_MAX_CHARACTERS
-      if (!Number.isSafeInteger(maxCharacters) || maxCharacters < 1) {
+      const rawMaxCharacters = options.maxCharacters
+      const maxCharacters = rawMaxCharacters === undefined ? DEFAULT_MAX_CHARACTERS : rawMaxCharacters
+      if (typeof maxCharacters !== 'number' || !Number.isSafeInteger(maxCharacters) || maxCharacters < 1) {
         throw new InvalidRequestError('Exa maxCharacters must be a positive safe integer', {
           provider: 'exa',
           operation: 'fetch',

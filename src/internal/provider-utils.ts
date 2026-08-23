@@ -14,6 +14,32 @@ export interface ResolvedProviderConfig {
   baseUrl: string
 }
 
+interface ProviderOptionRule {
+  description: string
+  validate(value: unknown): boolean
+}
+
+function optionRule(description: string, validate: (value: unknown) => boolean): ProviderOptionRule {
+  return { description, validate }
+}
+
+export const providerOptionRules = {
+  boolean: optionRule('a boolean', (value) => typeof value === 'boolean'),
+  string: optionRule('a string', (value) => typeof value === 'string'),
+  positiveSafeInteger: optionRule(
+    'a positive safe integer',
+    (value) => typeof value === 'number' && Number.isSafeInteger(value) && value > 0,
+  ),
+  oneOf: <T extends string | number>(values: readonly T[]) => optionRule(
+    `one of ${values.map((value) => JSON.stringify(value)).join(', ')}`,
+    (value) => values.includes(value as T),
+  ),
+  oneOfOrBoolean: <T extends string>(values: readonly T[]) => optionRule(
+    `a boolean or one of ${values.map((value) => JSON.stringify(value)).join(', ')}`,
+    (value) => typeof value === 'boolean' || values.includes(value as T),
+  ),
+}
+
 export function resolveProviderConfig(
   context: ProviderSearchContext | { config: ProviderSearchContext['config'] },
   provider: ProviderId,
@@ -51,6 +77,7 @@ export function providerOptions(
   context: ProviderSearchContext,
   provider: ProviderId,
   engine: SearchEngine,
+  rules: Readonly<Record<string, ProviderOptionRule>> = {},
 ): Record<string, unknown> {
   if (value === undefined) return {}
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
@@ -66,6 +93,13 @@ export function providerOptions(
         provider,
         engine,
       })
+    }
+    const rule = rules[key]
+    if (rule !== undefined && !rule.validate(options[key])) {
+      throw new InvalidRequestError(
+        `Provider option '${key}' must be ${rule.description}`,
+        { provider, engine },
+      )
     }
   }
   return options

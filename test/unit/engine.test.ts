@@ -1,4 +1,4 @@
-import { InvalidEngineError } from '../../src/errors.js'
+import { InvalidEngineError, InvalidRequestError } from '../../src/errors.js'
 import { getProviderEngines, parseEngine, resolveProviderEngine } from '../../src/internal/engine.js'
 
 describe('engine parsing', () => {
@@ -18,6 +18,11 @@ describe('engine parsing', () => {
     expect(() => parseEngine('unknown:web')).toThrow(InvalidEngineError)
     expect(() => parseEngine('tavily')).toThrow(InvalidEngineError)
     expect(() => parseEngine('tavily:missing')).toThrow(InvalidEngineError)
+  })
+
+  test('rejects non-object provider options and invalid mode types', () => {
+    expect(() => resolveProviderEngine('tavily', null)).toThrow(InvalidRequestError)
+    expect(() => resolveProviderEngine('baidu', { mode: true })).toThrow(InvalidRequestError)
   })
 
   test('exposes the explicit engine allowlist', () => {

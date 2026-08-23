@@ -39,4 +39,17 @@ describe('Exa fetch provider', () => {
     await expect(provider.fetch({ provider: 'exa', url: 'https://example.com' }, makeFetchContext(fetcher, { exa: { apiKey: 'test-key' } })))
       .rejects.toMatchObject({ code: 'RATE_LIMIT_ERROR', operation: 'fetch', provider: 'exa' })
   })
+
+  test('rejects invalid maxCharacters instead of silently using the default', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+    const provider = createExaFetchProvider(makeContext(fetcher, { exa: { apiKey: 'test-key' } }))
+
+    await expect(provider.fetch({
+      provider: 'exa',
+      url: 'https://example.com',
+      providerOptions: { maxCharacters: '1000' as unknown as number },
+    }, makeFetchContext(fetcher, { exa: { apiKey: 'test-key' } })))
+      .rejects.toMatchObject({ code: 'INVALID_REQUEST', provider: 'exa', operation: 'fetch' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
 })

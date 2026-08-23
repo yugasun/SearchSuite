@@ -32,5 +32,15 @@ describe('Baidu provider', () => {
       expect.objectContaining({ body: expect.stringContaining('"model":"custom-model"') }),
     )
   })
-})
 
+  test('rejects non-string model options before requesting', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+    const provider = createBaiduProvider(makeContext(fetcher, { baidu: { apiKey: 'test-key' } }))
+
+    await expect(provider.search(makeRequest('baidu:ai', {
+      providerOptions: { model: 123 as unknown as string },
+    }), makeSearchContext(fetcher, { baidu: { apiKey: 'test-key' } })))
+      .rejects.toMatchObject({ code: 'INVALID_REQUEST', provider: 'baidu' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+})

@@ -3,6 +3,7 @@ import {
   clampMaxResults,
   normalizedResult,
   providerOptions,
+  providerOptionRules,
   record,
   resolveProviderConfig,
   safeRaw,
@@ -31,7 +32,14 @@ export function createExaProvider(context: ProviderContext): SearchProvider {
       const engine = request.engine
       const type = engine.slice('exa:'.length)
       if (!ENGINES.has(type)) throw new Error(`Unsupported Exa engine: ${engine}`)
-      const options = providerOptions(request.providerOptions, ['highlightsPerUrl'], searchContext, 'exa', engine)
+      const options = providerOptions(
+        request.providerOptions,
+        ['highlightsPerUrl'],
+        searchContext,
+        'exa',
+        engine,
+        { highlightsPerUrl: providerOptionRules.positiveSafeInteger },
+      )
       const maxResults = request.maxResults
       const highlightsPerUrl = typeof options.highlightsPerUrl === 'number'
         ? Math.max(1, Math.floor(options.highlightsPerUrl))
