@@ -8,11 +8,13 @@ contract; each adapter owns only the translation for one provider.
 Application
     │ SearchSuite.search(request)
     ▼
-Client: engine parsing, signals, normalization, capability policy, latency
+Client: engine parsing and caller/timeout signal composition
     ▼
-Explicit lazy registry: provider factory lookup and instance cache
+Explicit lazy registry: import, provider config snapshot, instance cache
     ▼
-Thin provider adapter: config, options, request/response mapping
+Client: normalize with provider capabilities, then apply capability policy
+    ▼
+Thin provider adapter: option validation and request/response mapping
     ▼
 Native or injected fetch
     ▼
@@ -25,11 +27,12 @@ Normalized SearchResponse
    `provider:engine` value.
 2. The client combines the caller's `AbortSignal` with its configured deadline.
 3. The explicit registry dynamically imports the selected built-in provider and
-   caches the initialization promise.
-4. Common input is normalized: query, result count, and domain lists.
+   calls its factory. Provider configuration is resolved during this first
+   initialization, and the registry caches the initialization promise.
+4. The client checks cancellation again, then normalizes the query, result count,
+   and domain lists using the initialized provider's capability declaration.
 5. The client applies the selected capability policy to portable parameters.
-6. The adapter resolves configuration and validates engine-specific
-   `providerOptions` at runtime.
+6. The adapter validates engine-specific `providerOptions` at runtime.
 7. The adapter maps one upstream request and sends it through native or injected
    `fetch` with the combined signal.
 8. HTTP errors and aborts are mapped to the public error hierarchy.
@@ -38,15 +41,18 @@ Normalized SearchResponse
 10. The client attaches the normalized query and engine and records end-to-end
     monotonic latency.
 
-There is exactly one provider request per `search()` call in v0.1.
+There is at most one upstream provider request per `search()` call in v0.1.
+Engine parsing, cancellation, provider configuration, common normalization, or
+option validation can fail before `fetch`, producing zero upstream requests.
+There are no hidden retries, fallback requests, or composition calls.
 
 ## Component responsibilities
 
 ### Client
 
 [`src/client.ts`](../src/client.ts) owns public orchestration: engine parsing,
-deadline/caller-signal composition, common normalization, capability policy,
-provider acquisition, and latency measurement. It does not understand provider
+deadline/caller-signal composition, provider acquisition, common normalization,
+capability policy, and latency measurement. It does not understand provider
 payload formats and does not select a provider on the caller's behalf.
 
 ### Explicit lazy registry
@@ -84,8 +90,8 @@ instead of expanding the common schema around one vendor.
 
 ## Configuration lifecycle
 
-Provider configuration is resolved when the provider handles a search, using
-this field-level precedence:
+Provider configuration is resolved by the factory on the provider's first
+initialization, using this field-level precedence:
 
 ```text
 explicit providers configuration > environment variable > provider default
@@ -96,6 +102,12 @@ variables supply credentials; adapters define default endpoints and any
 documented provider default such as the Baidu AI model. Missing credentials and
 invalid base URLs fail with `ConfigurationError` before an upstream request is
 sent.
+
+The cached provider retains this resolved configuration snapshot. Later changes
+to the environment or constructor configuration object do not affect that
+provider instance. If initialization rejects, the registry removes the rejected
+promise, so a later search can initialize the provider again with current
+configuration.
 
 The SDK itself does not load `.env` files. Applications and local commands own
 environment loading.

@@ -119,22 +119,68 @@ package metadata, and contains no source credentials or `.env` file.
 Install the tarball in a clean Node.js 24 ESM consumer:
 
 ```sh
+tarball_path="$(pwd -P)/.tmp/searchsuite-0.1.0.tgz"
 consumer_dir="$(mktemp -d)"
-npm init --prefix "$consumer_dir" -y
-npm install --prefix "$consumer_dir" --ignore-scripts \
-  "$PWD/.tmp/searchsuite-0.1.0.tgz"
-cd "$consumer_dir"
-node --input-type=module -e \
-  "import { SearchSuite, SearchTimeoutError } from 'searchsuite'; console.log(typeof SearchSuite, typeof SearchTimeoutError)"
+(
+  cd "$consumer_dir"
+  npm init -y
+  npm pkg set type=module
+  npm install --ignore-scripts "$tarball_path"
+  node --input-type=module -e \
+    "import { SearchSuite, SearchTimeoutError } from 'searchsuite'; const client = new SearchSuite(); const error = new SearchTimeoutError(); console.log(client.constructor.name, error.code)"
+)
 ```
 
-For declaration and generic inference validation, create a small TypeScript ESM
-consumer that imports `SearchSuite`, asserts a literal response type, and checks
-an engine-specific option. Install TypeScript only in that temporary consumer
-and run `tsc --noEmit`. The in-repository fixture
-[`test/typecheck/consumer.ts`](../test/typecheck/consumer.ts) provides the
-minimum expected cases, but a tarball consumer proves the published declaration
-paths as well.
+The runtime smoke only instantiates exported classes; it does not send a search
+request. Continue in the same clean consumer to validate the packed declarations
+and generic inference:
+
+```sh
+(
+  cd "$consumer_dir"
+  npm install --save-dev typescript
+
+  cat > smoke.ts <<'EOF'
+import { SearchSuite, type SearchResponse } from 'searchsuite'
+
+const client = new SearchSuite()
+const pending = client.search({
+  engine: 'tavily:advanced',
+  query: 'declaration smoke only',
+  providerOptions: { chunksPerSource: 2 },
+})
+
+const typed: Promise<SearchResponse<'tavily:advanced'>> = pending
+type Response = Awaited<typeof pending>
+declare const response: Response
+const engine: 'tavily:advanced' = response.engine
+void typed
+void engine
+EOF
+
+  cat > tsconfig.json <<'EOF'
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true
+  },
+  "include": ["smoke.ts"]
+}
+EOF
+
+  npx tsc --noEmit
+)
+```
+
+This second smoke only type-checks `smoke.ts`; it does not execute it or perform
+a live search. The in-repository fixture
+[`test/typecheck/consumer.ts`](../test/typecheck/consumer.ts) covers the same
+minimum inference cases, while the clean consumer also proves the declaration
+paths inside the tarball.
 
 ## Current CI
 

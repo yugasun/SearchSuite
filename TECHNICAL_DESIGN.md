@@ -187,11 +187,14 @@ examples/
 SearchRequest<E>
     │ parse engine + combine caller/timeout signals
     ▼
+explicit lazy provider factory (cached per provider)
+    │ resolve config snapshot + expose capabilities
+    ▼
 NormalizedSearchRequest<E>
     │ normalize common input + capability policy
     ▼
-explicit lazy provider factory (cached per provider)
-    │ resolve config + validate providerOptions
+provider adapter
+    │ validate providerOptions + map request
     ▼
 injected or global fetch
     │ map HTTP / abort / timeout errors
@@ -210,7 +213,7 @@ SearchResponse<E>
 - Types：表达跨 Provider 可迁移概念，并提供 engine 级类型推导；
 - Router（未来可选上层）：选择 Provider；不得渗入 Adapter 或改变核心单次请求语义。
 
-v0.1 中每次 `search()` 对应一个已选择 Provider 的一次请求，不存在隐藏 fallback 或多请求组合。
+v0.1 中每次 `search()` 最多发起一次上游 Provider 请求。engine、取消、配置、通用参数或 `providerOptions` 校验都可能在 `fetch` 前失败，此时上游请求数为零；不存在隐藏 retry、fallback 或多请求组合。
 
 ## 7. 关键契约
 
@@ -235,7 +238,7 @@ v0.1 中每次 `search()` 对应一个已选择 Provider 的一次请求，不�
 显式 providers 配置 > 环境变量 > Provider 默认值
 ```
 
-Provider 在处理搜索时解析配置。SDK 本身不加载 `.env`；应用或 Node.js `--env-file` 负责把变量放入 `process.env`。
+Provider factory 在该 Provider 首次初始化时解析配置，并由 Registry 缓存包含该配置快照的实例。之后修改环境变量或构造器配置对象不会影响已缓存实例；若初始化失败，Registry 会移除失败 Promise，使下一次搜索可以按当前配置重新初始化。SDK 本身不加载 `.env`；应用或 Node.js `--env-file` 负责把变量放入 `process.env`。
 
 安全边界：
 
