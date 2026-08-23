@@ -7,11 +7,11 @@ const client = new SearchSuite({
   },
 })
 
-for (const engine of ['tavily:advanced', 'exa:auto'] as const) {
+for (const provider of ['tavily', 'exa'] as const) {
   const response = await client.search({
-    engine,
+    provider,
     query: 'AI Agent search infrastructure',
     maxResults: 5,
   })
-  console.log(engine, response.results.length)
+  console.log(provider, response.results.length)
 }

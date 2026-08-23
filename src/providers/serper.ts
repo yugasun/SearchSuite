@@ -71,6 +71,7 @@ export function createSerperProvider(context: ProviderContext): SearchProvider {
           ? knowledgeGraph.description.trim()
           : undefined
       return {
+        provider: 'serper',
         query: request.query,
         engine,
         ...(answer === undefined ? {} : { answer }),

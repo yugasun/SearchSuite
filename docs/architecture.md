@@ -2,15 +2,17 @@
 
 SearchSuite is a framework-independent compatibility layer between an
 application and several search providers. Its core owns a portable search
-contract; each adapter owns only the translation for one provider.
+contract; each adapter owns only the translation for one provider. It also
+exports a framework-independent `WebFetchProvider` seam and a provider-first
+content retrieval API.
 
 ```text
 Application
-    │ SearchSuite.search(request)
+    │ SearchSuite.search(request) / SearchSuite.fetch(request)
     ▼
-Client: engine parsing and caller/timeout signal composition
+Client: Provider resolution and caller/timeout signal composition
     ▼
-Explicit lazy registry: import, provider config snapshot, instance cache
+Explicit lazy registries: search and fetch Provider instances
     ▼
 Client: normalize with provider capabilities, then apply capability policy
     ▼
@@ -23,8 +25,8 @@ Normalized SearchResponse
 
 ## Request flow
 
-1. `SearchSuite.search()` parses and validates the literal
-   `provider:engine` value.
+1. `SearchSuite.search()` validates the selected Provider and resolves its
+   semantic mode options to an internal engine.
 2. The client combines the caller's `AbortSignal` with its configured deadline.
 3. The explicit registry dynamically imports the selected built-in provider and
    calls its factory. Provider configuration is resolved during this first
@@ -32,28 +34,36 @@ Normalized SearchResponse
 4. The client checks cancellation again, then normalizes the query, result count,
    and domain lists using the initialized provider's capability declaration.
 5. The client applies the selected capability policy to portable parameters.
-6. The adapter validates engine-specific `providerOptions` at runtime.
+6. The adapter validates Provider-specific `providerOptions` at runtime.
 7. The adapter maps one upstream request and sends it through native or injected
    `fetch` with the combined signal.
 8. HTTP errors and aborts are mapped to the public error hierarchy.
 9. The adapter converts valid upstream items to normalized results and preserves
    selected safe `raw` data.
-10. The client attaches the normalized query and engine and records end-to-end
-    monotonic latency.
+10. The client attaches the normalized query, Provider, and resolved internal
+    engine and records end-to-end monotonic latency.
 
-There is at most one upstream provider request per `search()` call in v0.1.
-Engine parsing, cancellation, provider configuration, common normalization, or
-option validation can fail before `fetch`, producing zero upstream requests.
+There is at most one upstream provider request per `search()` or `fetch()` call
+in v0.1. Provider mode resolution, cancellation, provider configuration,
+common normalization, or option validation can fail before the network request,
+producing zero upstream requests.
 There are no hidden retries, fallback requests, or composition calls.
+
+`SearchSuite.fetch()` follows the same lifecycle with a separate lazy fetch
+registry. It validates an absolute HTTP(S) URL, selects a content-capable
+Provider, passes the combined signal to Tavily Extract or Exa Contents, and
+returns normalized content plus latency. Search and fetch capabilities are
+separate; Baidu, Doubao, and Serper do not need to implement fetch.
 
 ## Component responsibilities
 
 ### Client
 
-[`src/client.ts`](../src/client.ts) owns public orchestration: engine parsing,
-deadline/caller-signal composition, provider acquisition, common normalization,
-capability policy, and latency measurement. It does not understand provider
-payload formats and does not select a provider on the caller's behalf.
+[`src/client.ts`](../src/client.ts) owns public orchestration: Provider
+validation, internal mode resolution, deadline/caller-signal composition,
+provider acquisition, common normalization, capability policy, content URL
+validation, and latency measurement. It does not understand provider payload
+formats and does not select a Provider on the caller's behalf.
 
 ### Explicit lazy registry
 
@@ -84,9 +94,19 @@ signal combination, request normalization, safe raw handling, and result helpers
 ### Portable types
 
 [`src/types.ts`](../src/types.ts) contains common concepts that apply across
-providers and maps each engine literal to its typed `providerOptions`. Features
+providers and maps each Provider to its typed search and fetch options. Features
 that cannot be expressed portably remain in provider options or safe `raw`
 instead of expanding the common schema around one vendor.
+
+### Content retrieval seam
+
+[`WebFetchProvider`](../src/types.ts) describes a provider that retrieves one
+absolute HTTP(S) page URL and returns either HTML or text content, an HTTP
+status, and an explicit truncation flag. Its `id`, `available()`, and
+`fetch(request, signal?)` shape is compatible with dsh-web's provider contract.
+Provider selection, fallback, and direct HTTP fetching remain owned by an
+integration layer. SearchSuite owns the explicit Tavily and Exa content
+adapters, but still does not perform cross-Provider routing.
 
 ## Configuration lifecycle
 
@@ -167,7 +187,7 @@ The following are deliberate non-goals:
 - automatic retry, fallback, or provider selection;
 - quota, cost, quality, or multi-key routing;
 - caching, reranking, result fusion, or federated search;
-- extract, crawl, or `web_fetch` APIs;
+- crawl, cross-Provider routing, or DSH-specific `web_fetch` execution;
 - a gateway, operational control plane, or SaaS service;
 - framework-specific plugins.
 

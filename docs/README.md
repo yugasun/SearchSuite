@@ -7,7 +7,7 @@ Doubao, Tavily, Exa, and Serper through one typed search API.
 
 - [Getting started](getting-started.md) — install the package, configure
   credentials, run a first search, and troubleshoot common usage errors.
-- [Providers](providers.md) — choose an engine and understand credentials,
+- [Providers](providers.md) — choose a Provider and understand credentials,
   provider options, limits, and the capability matrix.
 - [API reference](api-reference.md) — use the public request, response, warning,
   error, timeout, and cancellation contracts.

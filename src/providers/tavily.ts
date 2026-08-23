@@ -93,6 +93,7 @@ export function createTavilyProvider(context: ProviderContext): SearchProvider {
       const answer = typeof root.answer === 'string' && root.answer.trim() ? root.answer.trim() : undefined
       const usage = mapUsage(root.usage)
       return {
+        provider: 'tavily',
         query: request.query,
         engine,
         ...(answer === undefined ? {} : { answer }),

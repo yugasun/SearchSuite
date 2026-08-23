@@ -1,18 +1,19 @@
 # Providers
 
-SearchSuite v0.1 implements five thin provider adapters. Select one with the
-literal `provider:engine`; the engine determines the valid TypeScript
-`providerOptions` and the upstream request mapping.
+SearchSuite v0.1 implements five thin search Provider adapters and two content
+Provider adapters. Select a Provider by name; the operation (`search()` or
+`fetch()`) determines the upstream request mapping. Provider-specific modes are
+semantic `providerOptions`, not endpoint names.
 
 ## Quick reference
 
-| Provider | Engines | Credential environment variables | Default base URL | `maxResults` limit |
-| --- | --- | --- | --- | --- |
-| Baidu | `baidu:web`, `baidu:ai` | `BAIDU_API_KEY`, then `QIANFAN_API_KEY` | `https://qianfan.baidubce.com` | web: 50; AI: 20 |
-| Doubao | `doubao:custom`, `doubao:global` | `DOUBAO_API_KEY`, then `DOUBAO_SEARCH_API_KEY` | `https://open.feedcoopapi.com` | custom: 50; global: 20 |
-| Tavily | `tavily:basic`, `tavily:advanced`, `tavily:fast`, `tavily:ultra-fast` | `TAVILY_API_KEY` | `https://api.tavily.com` | 20 |
-| Exa | `exa:auto`, `exa:keyword`, `exa:neural` | `EXA_API_KEY` | `https://api.exa.ai` | 100 |
-| Serper | `serper:google` | `SERPER_API_KEY` | `https://google.serper.dev` | 100 |
+| Provider | Search defaults | Page content | Credential environment variables | Default base URL | `maxResults` limit |
+| --- | --- | --- | --- | --- | --- |
+| Baidu | `web` | — | `BAIDU_API_KEY`, then `QIANFAN_API_KEY` | `https://qianfan.baidubce.com` | web: 50; AI: 20 |
+| Doubao | `custom` | — | `DOUBAO_API_KEY`, then `DOUBAO_SEARCH_API_KEY` | `https://open.feedcoopapi.com` | custom: 50; global: 20 |
+| Tavily | `basic` | Yes | `TAVILY_API_KEY` | `https://api.tavily.com` | 20 |
+| Exa | `auto` | Yes | `EXA_API_KEY` | `https://api.exa.ai` | 100 |
+| Serper | `google` | — | `SERPER_API_KEY` | `https://google.serper.dev` | 100 |
 
 Every provider accepts explicit `apiKey` and `baseUrl` configuration. Each field
 is resolved independently: an explicit `apiKey` overrides the provider's
@@ -36,7 +37,7 @@ const client = new SearchSuite({
 })
 ```
 
-The engine examples below use this `client`; the relevant environment credential
+The Provider examples below use this `client`; the relevant environment credential
 must be present for any provider without an explicit key.
 
 Unknown provider option keys are rejected both by TypeScript for typed calls and
@@ -44,10 +45,10 @@ at runtime for untyped input.
 
 ## Baidu
 
-Engines:
+Provider options:
 
-- `baidu:web` performs web search and accepts no `providerOptions`.
-- `baidu:ai` performs AI search and accepts `model?: string`.
+- `mode?: 'web' | 'ai'` selects ordinary or AI search; the default is `web`.
+- `model?: string` applies to AI search.
 
 The query limit is 72 weighted units: ASCII code points count as one unit and
 non-ASCII code points count as two. Longer queries are truncated and emit a
@@ -60,10 +61,11 @@ The default AI model is `ernie-4.5-turbo-32k`. A request-level
 
 ```ts
 const response = await client.search({
-  engine: 'baidu:ai',
+  provider: 'baidu',
   query: 'Explain Node.js ESM package exports',
   maxResults: 5,
   providerOptions: {
+    mode: 'ai',
     model: 'ernie-4.5-turbo-32k',
   },
 })
@@ -78,22 +80,23 @@ top-level `answer`. Baidu web does not fabricate an answer.
 
 ## Doubao
 
-Engines and typed options:
+Provider modes and typed options:
 
-- `doubao:custom`: `needSummary?: boolean` (default: `true`).
-- `doubao:global`: `maxSnippetLength?: number` (default: `1000`).
+- `mode?: 'custom' | 'global'` (default: `custom`).
+- `needSummary?: boolean` applies to custom search.
+- `maxSnippetLength?: number` applies to global search.
 
 ```ts
 const custom = await client.search({
-  engine: 'doubao:custom',
+  provider: 'doubao',
   query: 'TypeScript search SDKs',
-  providerOptions: { needSummary: true },
+  providerOptions: { mode: 'custom', needSummary: true },
 })
 
 const global = await client.search({
-  engine: 'doubao:global',
+  provider: 'doubao',
   query: 'TypeScript search SDKs',
-  providerOptions: { maxSnippetLength: 800 },
+  providerOptions: { mode: 'global', maxSnippetLength: 800 },
 })
 ```
 
@@ -110,14 +113,11 @@ as provided. The adapter does not synthesize a top-level answer.
 
 ## Tavily
 
-Engines:
+Provider options:
 
-- `tavily:basic`
-- `tavily:advanced`
-- `tavily:fast`
-- `tavily:ultra-fast`
+- `searchDepth?: 'basic' | 'advanced' | 'fast' | 'ultra-fast'` (default: `basic`).
 
-All four engines accept:
+All four Tavily search modes accept:
 
 ```ts
 interface TavilySearchOptions {
@@ -131,13 +131,14 @@ Only `tavily:advanced` additionally accepts `chunksPerSource?: 1 | 2 | 3`:
 
 ```ts
 const response = await client.search({
-  engine: 'tavily:advanced',
+  provider: 'tavily',
   query: 'Recent retrieval-augmented generation research',
   maxResults: 10,
   includeDomains: ['arxiv.org'],
   excludeDomains: ['example.com'],
   timeRange: 'month',
   providerOptions: {
+    searchDepth: 'advanced',
     topic: 'general',
     includeAnswer: 'advanced',
     includeRawContent: 'markdown',
@@ -157,21 +158,20 @@ answer from result snippets.
 
 ## Exa
 
-Engines:
+Provider options:
 
-- `exa:auto`
-- `exa:keyword`
-- `exa:neural`
+- `searchType?: 'auto' | 'keyword' | 'neural'` (default: `auto`).
 
-Every Exa engine accepts `highlightsPerUrl?: number`. The adapter floors the
+Every Exa search mode accepts `highlightsPerUrl?: number`. The adapter floors the
 value and uses at least one highlight per URL:
 
 ```ts
 const response = await client.search({
-  engine: 'exa:neural',
+  provider: 'exa',
   query: 'Search provider adapter architecture',
   maxResults: 10,
   providerOptions: {
+    searchType: 'neural',
     highlightsPerUrl: 2,
   },
 })
@@ -184,12 +184,12 @@ answer.
 
 ## Serper
 
-The only v0.1 engine is `serper:google`. It accepts `gl?: string` for country and
+The default Serper search mode is `google`. It accepts `gl?: string` for country and
 `hl?: string` for language:
 
 ```ts
 const response = await client.search({
-  engine: 'serper:google',
+  provider: 'serper',
   query: 'Node.js TypeScript libraries',
   maxResults: 10,
   providerOptions: {
@@ -206,6 +206,29 @@ lookup and the default endpoint respectively.
 A non-empty answer-box snippet is exposed as the top-level `answer`; otherwise a
 non-empty knowledge-graph description is used. SearchSuite does not construct an
 answer from organic snippets.
+
+## Page content fetching
+
+Only Tavily and Exa currently implement `client.fetch()`:
+
+```ts
+const tavilyPage = await client.fetch({
+  provider: 'tavily',
+  url: 'https://example.com/article',
+  providerOptions: { extractDepth: 'advanced', format: 'markdown' },
+})
+
+const exaPage = await client.fetch({
+  provider: 'exa',
+  url: 'https://example.com/article',
+  providerOptions: { maxCharacters: 100_000 },
+})
+```
+
+Tavily maps to its Extract capability and Exa maps to Contents internally. The
+caller chooses only `tavily` or `exa`; endpoint names are not part of the
+public API. DSH's direct HTTP fetch remains outside this SDK and can still be
+selected by an integration layer.
 
 ## Common capability matrix
 

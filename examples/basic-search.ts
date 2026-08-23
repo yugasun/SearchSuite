@@ -2,7 +2,7 @@ import { SearchSuite } from 'searchsuite'
 
 const client = new SearchSuite()
 const response = await client.search({
-  engine: 'tavily:advanced',
+  provider: 'tavily',
   query: 'AI Agent search infrastructure',
   maxResults: 5,
 })

@@ -9,6 +9,7 @@ function makeProvider(capabilities: SearchProvider['capabilities']): SearchProvi
     capabilities,
     async search(request) {
       return {
+        provider: 'tavily',
         query: request.query,
         engine: request.engine,
         results: [{ title: 'Example', url: 'https://example.com' }],
@@ -39,6 +40,46 @@ describe('SearchSuite client', () => {
     expect(response.query).toBe('hello')
     expect(response.engine).toBe('tavily:advanced')
     expect(response.results[0]?.url).toBe('https://example.com')
+    expect(response.latencyMs).toBeGreaterThanOrEqual(0)
+  })
+
+  test('accepts provider-first search requests and resolves the provider mode internally', async () => {
+    const provider = makeProvider({
+      includeDomains: true,
+      excludeDomains: true,
+      timeRange: true,
+      content: true,
+      score: true,
+    })
+    const client = new SearchSuite({}, createProviderRegistry({ tavily: () => provider }))
+
+    const response = await client.search({
+      provider: 'tavily',
+      query: 'hello',
+      providerOptions: { searchDepth: 'advanced' },
+    })
+
+    expect(response.provider).toBe('tavily')
+    expect(response.engine).toBe('tavily:advanced')
+  })
+
+  test('fetches page content through the selected provider', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
+      results: [{ url: 'https://example.com/article', text: 'Article content' }],
+    }), { status: 200 }))
+    const client = new SearchSuite({
+      fetch: fetcher,
+      providers: { exa: { apiKey: 'test-key' } },
+    })
+
+    const response = await client.fetch({
+      provider: 'exa',
+      url: 'https://example.com/article',
+      providerOptions: { maxCharacters: 1_000 },
+    })
+
+    expect(response.provider).toBe('exa')
+    expect(response.body).toEqual({ kind: 'text', content: 'Article content' })
     expect(response.latencyMs).toBeGreaterThanOrEqual(0)
   })
 
@@ -92,5 +133,21 @@ describe('SearchSuite client', () => {
       .rejects.toBeInstanceOf(SearchAbortedError)
     expect(factory).not.toHaveBeenCalled()
   })
-})
 
+  test('pre-aborted fetches do not initialize a Fetch Provider', async () => {
+    const controller = new AbortController()
+    controller.abort()
+    const fetcher = vi.fn<typeof fetch>()
+    const client = new SearchSuite({
+      fetch: fetcher,
+      providers: { exa: { apiKey: 'test-key' } },
+    })
+
+    await expect(client.fetch({
+      provider: 'exa',
+      url: 'https://example.com',
+      signal: controller.signal,
+    })).rejects.toBeInstanceOf(SearchAbortedError)
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+})

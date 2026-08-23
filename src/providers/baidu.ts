@@ -107,6 +107,7 @@ export function createBaiduProvider(context: ProviderContext): SearchProvider {
           .filter((item): item is NonNullable<typeof item> => item !== undefined)
       }
       return {
+        provider: 'baidu',
         query: request.query,
         engine,
         ...(answer === undefined ? {} : { answer }),

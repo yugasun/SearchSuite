@@ -14,7 +14,7 @@ const provider: SearchProvider = {
   id: 'tavily',
   capabilities,
   async search() {
-    return { query: 'x', engine: 'tavily:advanced', results: [], latencyMs: 0 }
+    return { provider: 'tavily', query: 'x', engine: 'tavily:advanced', results: [], latencyMs: 0 }
   },
 }
 
@@ -39,4 +39,3 @@ describe('Provider registry', () => {
     expect(factory).toHaveBeenCalledTimes(1)
   })
 })
-

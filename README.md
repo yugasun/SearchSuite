@@ -7,28 +7,35 @@
 ![ESM only](https://img.shields.io/badge/modules-ESM--only-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-One typed API for Baidu, Doubao, Tavily, Exa, and Serper search.
+One typed API for Baidu, Doubao, Tavily, Exa, and Serper search and page content.
 
-SearchSuite is a framework-independent TypeScript SDK. Choose a provider with
-an engine such as `tavily:advanced`, then call the same API everywhere:
+SearchSuite is a framework-independent TypeScript SDK. Choose a Provider by
+name, then use the operation you need:
 
 ```ts
 import { SearchSuite } from 'searchsuite'
 
 const client = new SearchSuite()
 const response = await client.search({
-  engine: 'tavily:advanced',
+  provider: 'tavily',
   query: 'Recent advances in AI agent search',
   maxResults: 5,
+})
+
+const page = await client.fetch({
+  provider: 'tavily',
+  url: 'https://example.com/article',
 })
 ```
 
 ## Highlights
 
-- Engine-aware TypeScript inference for `providerOptions` and responses.
+- Provider-aware TypeScript inference for `providerOptions` and responses.
 - Normalized results, usage, latency, warnings, and stable error classes.
 - Native `fetch` and `AbortSignal`; ESM-only and zero runtime dependencies.
 - Thin provider adapters with no hidden retries, fallback, routing, or caching.
+- A `fetch()` API for provider-backed page content, plus an exported
+  `WebFetchProvider` contract compatible with dsh-web.
 
 ## Requirements
 
@@ -53,7 +60,7 @@ import { SearchSuite } from 'searchsuite'
 // searchsuite reads the configured TAVILY_API_KEY
 const client = new SearchSuite()
 const response = await client.search({
-  engine: 'tavily:advanced',
+  provider: 'tavily',
   query: 'Recent advances in AI agent search',
   maxResults: 5,
 })
@@ -70,7 +77,7 @@ control.
 
 ## Providers
 
-| Provider | Engines | Environment variable |
+| Provider | Default search mode | Environment variable |
 | --- | --- | --- |
 | Baidu | `baidu:web`, `baidu:ai` | `BAIDU_API_KEY` or `QIANFAN_API_KEY` |
 | Doubao | `doubao:custom`, `doubao:global` | `DOUBAO_API_KEY` or `DOUBAO_SEARCH_API_KEY` |
@@ -78,11 +85,11 @@ control.
 | Exa | `exa:auto`, `exa:keyword`, `exa:neural` | `EXA_API_KEY` |
 | Serper | `serper:google` | `SERPER_API_KEY` |
 
-Switching providers only requires changing `engine`:
+Switching providers only requires changing `provider`:
 
 ```ts
 const response = await client.search({
-  engine: 'exa:auto',
+  provider: 'exa',
   query: 'Recent advances in AI agent search',
 })
 ```
@@ -93,10 +100,10 @@ for capabilities, limits, options, and normalized fields.
 
 ## Scope
 
-v0.1 provides the framework-agnostic search SDK and five provider adapters. It
-does not include routing, fallback, retries, multi-key selection, result
-fusion, reranking, caching, Extract, Crawl, `web_fetch`, a gateway, SaaS
-features, or a DeepSeek Harness plugin.
+v0.1 provides the framework-agnostic search SDK, five search Provider adapters,
+and Tavily/Exa page-content fetching. It does not include routing, fallback,
+retries, multi-key selection, result fusion, reranking, caching, Crawl, a
+gateway, SaaS features, or a DeepSeek Harness plugin.
 
 ## Documentation
 

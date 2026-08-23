@@ -1,5 +1,5 @@
 import { InvalidEngineError } from '../../src/errors.js'
-import { getProviderEngines, parseEngine } from '../../src/internal/engine.js'
+import { getProviderEngines, parseEngine, resolveProviderEngine } from '../../src/internal/engine.js'
 
 describe('engine parsing', () => {
   test('normalizes provider casing and preserves engine casing', () => {
@@ -23,5 +23,17 @@ describe('engine parsing', () => {
   test('exposes the explicit engine allowlist', () => {
     expect(getProviderEngines('baidu')).toEqual(['web', 'ai'])
     expect(getProviderEngines('serper')).toEqual(['google'])
+  })
+
+  test('resolves provider-first modes without exposing endpoint names', () => {
+    expect(resolveProviderEngine('exa', { searchType: 'neural', highlightsPerUrl: 2 })).toMatchObject({
+      provider: 'exa',
+      full: 'exa:neural',
+      providerOptions: { highlightsPerUrl: 2 },
+    })
+    expect(resolveProviderEngine('tavily')).toMatchObject({
+      provider: 'tavily',
+      full: 'tavily:basic',
+    })
   })
 })

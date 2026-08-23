@@ -113,6 +113,7 @@ export function createDoubaoProvider(context: ProviderContext): SearchProvider {
         .map(mode === 'global' ? mapGlobal : mapCustom)
         .filter((item): item is NonNullable<typeof item> => item !== undefined)
       return {
+        provider: 'doubao',
         query: request.query,
         engine,
         results,

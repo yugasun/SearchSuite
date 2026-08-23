@@ -17,6 +17,7 @@ export type SearchErrorCode =
 export interface SearchErrorContext {
   provider?: ProviderId
   engine?: SearchEngine
+  operation?: 'search' | 'fetch'
   statusCode?: number
   retryable?: boolean
   raw?: unknown
@@ -32,6 +33,7 @@ export class SearchSuiteError extends Error {
   readonly code: SearchErrorCode
   readonly provider?: ProviderId
   readonly engine?: SearchEngine
+  readonly operation?: 'search' | 'fetch'
   readonly statusCode?: number
   readonly retryable: boolean
   readonly raw?: unknown
@@ -42,6 +44,7 @@ export class SearchSuiteError extends Error {
     this.code = code
     if (context.provider !== undefined) this.provider = context.provider
     if (context.engine !== undefined) this.engine = context.engine
+    if (context.operation !== undefined) this.operation = context.operation
     if (context.statusCode !== undefined) this.statusCode = context.statusCode
     this.retryable = context.retryable ?? false
     if (context.raw !== undefined) this.raw = redactSecrets(context.raw)
@@ -61,6 +64,7 @@ export class SearchSuiteError extends Error {
       message: this.message,
       ...(this.provider === undefined ? {} : { provider: this.provider }),
       ...(this.engine === undefined ? {} : { engine: this.engine }),
+      ...(this.operation === undefined ? {} : { operation: this.operation }),
       ...(this.statusCode === undefined ? {} : { statusCode: this.statusCode }),
       retryable: this.retryable,
       ...(this.raw === undefined ? {} : { raw: this.raw }),

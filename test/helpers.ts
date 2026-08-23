@@ -1,4 +1,4 @@
-import type { ProviderContext, ProviderSearchContext } from '../src/provider.js'
+import type { ProviderContext, ProviderFetchContext, ProviderSearchContext } from '../src/provider.js'
 import type { NormalizedSearchRequest, ProviderConfigMap, SearchEngine } from '../src/types.js'
 
 export function makeContext(
@@ -13,6 +13,13 @@ export function makeSearchContext(
   config: ProviderConfigMap = {},
 ): ProviderSearchContext {
   return { ...makeContext(fetch, config), signal: new AbortController().signal, warn: vi.fn() }
+}
+
+export function makeFetchContext(
+  fetch: typeof globalThis.fetch,
+  config: ProviderConfigMap = {},
+): ProviderFetchContext {
+  return { ...makeContext(fetch, config), signal: new AbortController().signal }
 }
 
 export function makeRequest<E extends SearchEngine>(
@@ -33,4 +40,3 @@ export function makeRequest<E extends SearchEngine>(
     ...values,
   }
 }
-

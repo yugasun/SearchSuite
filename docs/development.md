@@ -55,7 +55,7 @@ Keep regression payloads under `test/fixtures/`, remove credentials and
 authorization data, and add a fixture before fixing a provider compatibility
 regression.
 
-Engine or `providerOptions` changes require type-inference coverage under
+Provider or `providerOptions` changes require type-inference coverage under
 `test/typecheck/` or the focused type unit tests. The standalone examples have
 their own `examples/tsconfig.json` and should be checked from that directory.
 
@@ -114,7 +114,7 @@ pnpm build
 pnpm exec publint
 mkdir -p .tmp
 pnpm pack --pack-destination .tmp
-tar -tzf .tmp/searchsuite-0.1.0.tgz
+tar -tzf .tmp/searchsuite-0.1.1.tgz
 ```
 
 Use the filename printed by `pnpm pack` if the version changes. Confirm that the
@@ -124,7 +124,7 @@ metadata, and contains no changelog, source credentials, or `.env` file.
 Install the tarball in a clean Node.js 24 ESM consumer:
 
 ```sh
-tarball_path="$(pwd -P)/.tmp/searchsuite-0.1.0.tgz"
+tarball_path="$(pwd -P)/.tmp/searchsuite-0.1.1.tgz"
 consumer_dir="$(mktemp -d)"
 (
   cd "$consumer_dir"
@@ -146,21 +146,21 @@ and generic inference:
   npm install --save-dev typescript
 
   cat > smoke.ts <<'EOF'
-import { SearchSuite, type SearchResponse } from 'searchsuite'
+import { SearchSuite, type SearchResponseFor } from 'searchsuite'
 
 const client = new SearchSuite()
 const pending = client.search({
-  engine: 'tavily:advanced',
+  provider: 'tavily',
   query: 'declaration smoke only',
-  providerOptions: { chunksPerSource: 2 },
+  providerOptions: { searchDepth: 'advanced', chunksPerSource: 2 },
 })
 
-const typed: Promise<SearchResponse<'tavily:advanced'>> = pending
+const typed: Promise<SearchResponseFor<'tavily'>> = pending
 type Response = Awaited<typeof pending>
 declare const response: Response
-const engine: 'tavily:advanced' = response.engine
+const provider: 'tavily' = response.provider
 void typed
-void engine
+void provider
 EOF
 
   cat > tsconfig.json <<'EOF'
@@ -210,7 +210,7 @@ consumer, validate registry installation, or publish the package.
 | --- | --- |
 | Provider request/response behavior | Update mocked tests, fixtures, and [Providers](providers.md). |
 | Provider capability flag | Update contract coverage and the capability matrix in [Providers](providers.md). |
-| Engine or `providerOptions` type | Add type-inference coverage and update [Providers](providers.md), [API reference](api-reference.md), and [technical design](../TECHNICAL_DESIGN.md). |
+| Provider or `providerOptions` type | Add type-inference coverage and update [Providers](providers.md), [API reference](api-reference.md), and [technical design](../TECHNICAL_DESIGN.md). |
 | Public request, response, error, default, or cancellation behavior | Update tests, [API reference](api-reference.md), and technical design. |
 | Build, test, or release workflow | Update this guide when user-visible. |
 

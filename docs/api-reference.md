@@ -36,7 +36,7 @@ so there is no `close()` method.
 
 ```ts
 const response = await client.search({
-  engine: 'tavily:advanced',
+  provider: 'tavily',
   query: 'Typed search SDK design',
   maxResults: 5,
   includeDomains: ['typescriptlang.org'],
@@ -48,19 +48,21 @@ const response = await client.search({
 })
 ```
 
-`search<E extends SearchEngine>()` returns `Promise<SearchResponse<E>>`. The
-engine literal selects the corresponding `providerOptions` type and is retained
-on the response. For example, `chunksPerSource` is accepted for
-`tavily:advanced` but rejected for `tavily:basic`.
+`search<P extends ProviderId>()` returns a provider-specific
+`Promise<SearchResponseFor<P>>`. The Provider selects the adapter; Provider
+modes are represented by semantic `providerOptions`, not upstream endpoint
+names. For example, `searchDepth` selects Tavily's search depth while the
+request still uses `provider: 'tavily'`.
 
-[`SearchRequest`](../src/types.ts) contains:
+[`ProviderSearchRequest`](../src/types.ts) contains:
 
-- `engine`: a supported `provider:engine` literal.
+- `provider`: one of `baidu`, `doubao`, `tavily`, `exa`, or `serper`.
 - `query`: the search query.
 - `maxResults`: requested result count; defaults to `10`.
 - `includeDomains` and `excludeDomains`: optional domain filters.
 - `timeRange`: `'day'`, `'week'`, `'month'`, or `'year'`.
-- `providerOptions`: engine-specific typed options.
+- `providerOptions`: Provider-specific typed options such as `searchDepth` or
+  `searchType`.
 - `signal`: an optional caller-owned `AbortSignal`.
 
 Before an adapter runs, SearchSuite trims the query and rejects a blank value.
@@ -71,9 +73,59 @@ may clamp valid values to their upstream limits and emit a warning.
 
 TypeScript only protects typed callers. Adapters also validate
 `providerOptions` at runtime and reject unknown option keys. See
-[Providers](providers.md) for the supported engine literals and their options.
+[Providers](providers.md) for each Provider's options and defaults.
 
 There is no `asearch` alias: `search()` is already asynchronous.
+
+The older `engine: 'provider:mode'` request form remains accepted for
+compatibility, but new integrations should use the Provider-first form above.
+
+## `fetch(request)`
+
+```ts
+const page = await client.fetch({
+  provider: 'exa',
+  url: 'https://example.com/article',
+  providerOptions: { maxCharacters: 100_000 },
+})
+```
+
+`fetch<P extends FetchProviderId>()` supports `tavily` and `exa`. The Provider
+adapter chooses the upstream content endpoint internally. The response
+contains `provider`, the resolved URL, `statusCode`, a text or HTML `body`,
+`truncated`, and `latencyMs`.
+
+Fetch uses the same configured timeout, caller cancellation, injected fetch,
+safe `raw` handling, and shared Provider error mapping as search. SearchSuite
+does not select a Provider, retry, or fail over automatically.
+
+## `WebFetchProvider`
+
+SearchSuite exports a framework-independent contract for providers that retrieve
+content from one page URL:
+
+```ts
+import type {
+  WebFetchProvider,
+  WebFetchRequest,
+  WebFetchResult,
+} from 'searchsuite'
+
+const provider: WebFetchProvider = {
+  id: 'tavily',
+  available: () => true,
+  async fetch(request: WebFetchRequest, signal?: AbortSignal): Promise<WebFetchResult> {
+    // Provider or integration-specific implementation.
+    throw new Error(`Not implemented: ${request.url}`)
+  },
+}
+```
+
+`WebFetchResult.body` is either `{ kind: 'html', content }` or
+`{ kind: 'text', content }`; `truncated` makes any content limit explicit.
+The shape is intentionally compatible with dsh-web's `WebFetchProvider`, so
+`dsh-web-search` can reuse the contract without adding a DeepSeek Harness
+dependency to SearchSuite's core.
 
 ## Responses and results
 
@@ -81,8 +133,9 @@ Every provider returns [`SearchResponse`](../src/types.ts):
 
 | Field | Meaning |
 | --- | --- |
+| `provider` | The selected Provider. |
 | `query` | The common normalized query passed to the adapter. An adapter may further truncate its upstream query. |
-| `engine` | The requested engine literal. |
+| `engine` | The resolved internal Provider mode, retained for diagnostics and compatibility. |
 | `answer?` | A provider-supplied top-level answer; SearchSuite does not synthesize one from snippets. |
 | `results` | Normalized `SearchResult[]`. |
 | `usage?` | Portable request or credit counts when the provider reports them, plus optional safe `raw`. |
@@ -168,7 +221,7 @@ or fall back automatically.
 const controller = new AbortController()
 
 const pending = client.search({
-  engine: 'exa:auto',
+  provider: 'exa',
   query: 'AbortSignal patterns',
   signal: controller.signal,
 })

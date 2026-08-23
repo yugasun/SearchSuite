@@ -71,6 +71,30 @@ export function providerOptions(
   return options
 }
 
+export function fetchProviderOptions(
+  value: unknown,
+  allowed: readonly string[],
+  provider: string,
+): Record<string, unknown> {
+  if (value === undefined) return {}
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    throw new InvalidRequestError('providerOptions must be an object', {
+      provider: provider as never,
+      operation: 'fetch',
+    })
+  }
+  const options = value as Record<string, unknown>
+  for (const key of Object.keys(options)) {
+    if (!allowed.includes(key)) {
+      throw new InvalidRequestError(`Unknown provider option '${key}'`, {
+        provider: provider as never,
+        operation: 'fetch',
+      })
+    }
+  }
+  return options
+}
+
 export function clampMaxResults(
   value: number,
   limit: number,

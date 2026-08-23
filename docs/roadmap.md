@@ -6,7 +6,7 @@ describes possible directions, not commitments, dates, or reserved public APIs.
 ## Current: prepare v0.1 for release
 
 The repository already contains the framework-independent TypeScript SDK, five
-provider adapters, typed engine options, normalized results, structured errors,
+provider adapters, typed Provider options, normalized results, structured errors,
 cancellation, offline tests, credential-gated live tests, examples, and an ESM
 build.
 
@@ -44,7 +44,7 @@ tests, and zero core routing behavior.
 Applications may eventually need retry policies, fallback, multi-key handling,
 quota awareness, or cost and quality selection. If implemented, these belong in
 an optional layer above the single-provider SDK contract. The adapter core
-should remain deterministic: one selected engine and one provider request.
+should remain deterministic: one selected Provider and one provider request.
 
 An operational layer must expose request-count and selection behavior rather
 than hiding it inside adapters. It is not part of v0.1.
@@ -60,12 +60,16 @@ No composition API is implemented or promised today.
 
 ## Later: ecosystem consumers
 
-`dsh-web-search` may consume SearchSuite in the future so its DeepSeek Harness
-integration can reuse provider compatibility work. That dependency should point
-from the integration to SearchSuite; SearchSuite core must remain independent of
-dsh and other agent frameworks.
+`dsh-web-search` consumes SearchSuite so its DeepSeek Harness integration can
+reuse provider compatibility work. SearchSuite exports a `WebFetchProvider`
+contract that is structurally compatible with dsh-web's content provider seam,
+while `SearchSuite.fetch({ provider, url })` handles Tavily and Exa content
+retrieval behind the provider-neutral API.
+That dependency should point from the integration to SearchSuite; SearchSuite
+core must remain independent of dsh and other agent frameworks.
 
-A dsh plugin is not part of this package or the v0.1 release.
+A dsh plugin is not part of this package or the v0.1 release; the integration
+remains a separate consumer.
 
 ## How roadmap items become work
 

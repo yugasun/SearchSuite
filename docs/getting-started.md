@@ -80,7 +80,7 @@ import { SearchSuite } from 'searchsuite'
 const client = new SearchSuite()
 
 const response = await client.search({
-  engine: 'tavily:basic',
+  provider: 'tavily',
   query: 'Node.js ESM package design',
   maxResults: 5,
 })
@@ -97,9 +97,9 @@ Run it with either an exported environment variable or the `.env` file:
 node --env-file=.env app.mjs
 ```
 
-The same request shape works with any implemented engine once its credential is
-available. See [Providers](providers.md) for exact engine literals and typed
-`providerOptions`.
+The same request shape works with any implemented Provider once its credential
+is available. See [Providers](providers.md) for defaults and typed
+`providerOptions`. Tavily and Exa also support `client.fetch({ provider, url })`.
 
 ## Troubleshooting
 

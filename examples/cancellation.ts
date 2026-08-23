@@ -3,7 +3,7 @@ import { SearchAbortedError, SearchSuite } from 'searchsuite'
 const client = new SearchSuite()
 const controller = new AbortController()
 const request = client.search({
-  engine: 'serper:google',
+  provider: 'serper',
   query: 'Node.js ESM',
   signal: controller.signal,
 })

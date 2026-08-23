@@ -7,16 +7,24 @@ import {
   UnsupportedCapabilityError,
 } from './errors.js'
 import { parseEngine } from './internal/engine.js'
+import { resolveProviderEngine } from './internal/engine.js'
+import { normalizeFetchRequest } from './internal/fetch-normalize.js'
 import { normalizeSearchRequest } from './internal/normalize.js'
 import { combineSignals } from './internal/signal.js'
-import { createProviderRegistry, type ProviderRegistry } from './registry.js'
+import { createFetchProviderRegistry, createProviderRegistry, type FetchProviderRegistry, type ProviderRegistry } from './registry.js'
 import type { SearchProvider } from './provider.js'
 import { emitWarning } from './warnings.js'
 import type {
   NormalizedSearchRequest,
+  FetchRequest,
+  FetchResponse,
+  FetchProviderId,
+  ProviderSearchRequest,
+  ProviderId,
   SearchEngine,
   SearchRequest,
   SearchResponse,
+  SearchResponseFor,
   SearchSuiteOptions,
   SearchWarning,
   UnsupportedParamMode,
@@ -84,8 +92,13 @@ export class SearchSuite {
   private readonly fetcher: typeof globalThis.fetch
   private readonly providers: SearchSuiteOptions['providers']
   private readonly registry: ProviderRegistry
+  private readonly fetchRegistry: FetchProviderRegistry
 
-  constructor(options: SearchSuiteOptions = {}, registry: ProviderRegistry = createProviderRegistry()) {
+  constructor(
+    options: SearchSuiteOptions = {},
+    registry: ProviderRegistry = createProviderRegistry(),
+    fetchRegistry: FetchProviderRegistry = createFetchProviderRegistry(),
+  ) {
     const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS
     if (!Number.isFinite(timeoutMs) || timeoutMs <= 0) {
       throw new ConfigurationError('timeoutMs must be a positive finite number')
@@ -96,16 +109,28 @@ export class SearchSuite {
     this.fetcher = options.fetch ?? globalThis.fetch
     this.providers = options.providers
     this.registry = registry
+    this.fetchRegistry = fetchRegistry
   }
 
-  async search<E extends SearchEngine>(request: SearchRequest<E>): Promise<SearchResponse<E>> {
+  async search<P extends ProviderId>(request: ProviderSearchRequest<P>): Promise<SearchResponseFor<P>>
+  async search<E extends SearchEngine>(request: SearchRequest<E>): Promise<SearchResponse<E>>
+  async search(request: ProviderSearchRequest | SearchRequest): Promise<SearchResponse> {
     const started = performance.now()
-    const parsed = parseEngine(request.engine)
+    const resolved = 'provider' in request
+      ? resolveProviderEngine(request.provider, request.providerOptions)
+      : parseEngine(request.engine)
+    const internalRequest = {
+      ...request,
+      engine: resolved.full,
+      ...('providerOptions' in resolved && resolved.providerOptions !== undefined
+        ? { providerOptions: resolved.providerOptions }
+        : {}),
+    } as SearchRequest<SearchEngine>
     const combined = combineSignals(this.timeoutMs, request.signal)
 
     try {
       combined.throwIfAborted()
-      const provider = await this.registry.get(parsed.provider, {
+      const provider = await this.registry.get(resolved.provider, {
         fetch: this.fetcher,
         timeoutMs: this.timeoutMs,
         config: this.providers ?? {},
@@ -113,9 +138,9 @@ export class SearchSuite {
       combined.throwIfAborted()
 
       const normalized = normalizeSearchRequest(
-        { ...request, engine: parsed.full } as SearchRequest<SearchEngine>,
+        internalRequest,
         provider.capabilities,
-      ) as NormalizedSearchRequest<E>
+      ) as NormalizedSearchRequest<SearchEngine>
       const effective = applyCapabilityPolicy(
         normalized,
         provider,
@@ -134,15 +159,58 @@ export class SearchSuite {
 
       return {
         ...response,
+        provider: resolved.provider,
         query: effective.query,
-        engine: parsed.full as E,
+        engine: resolved.full,
         latencyMs: Math.max(0, Math.round(performance.now() - started)),
       }
     } catch (error) {
       if (combined.source() !== undefined && !isSearchSuiteError(error)) {
         throw new ProviderUnavailableError('Search provider request failed', {
-          provider: parsed.provider,
-          engine: parsed.full,
+          provider: resolved.provider,
+          engine: resolved.full,
+          retryable: true,
+          cause: error,
+        })
+      }
+      throw error
+    } finally {
+      combined.cleanup()
+    }
+  }
+
+  async fetch<P extends FetchProviderId>(request: FetchRequest<P>): Promise<FetchResponse<P>> {
+    const started = performance.now()
+    const combined = combineSignals(this.timeoutMs, request.signal)
+    let provider: FetchProviderId = request.provider
+    try {
+      combined.throwIfAborted()
+      const normalized = normalizeFetchRequest(request)
+      provider = normalized.provider
+      const fetchProvider = await this.fetchRegistry.get(normalized.provider, {
+        fetch: this.fetcher,
+        timeoutMs: this.timeoutMs,
+        config: this.providers ?? {},
+      })
+      combined.throwIfAborted()
+      const response = await fetchProvider.fetch(normalized, {
+        fetch: this.fetcher,
+        timeoutMs: this.timeoutMs,
+        config: this.providers ?? {},
+        signal: combined.signal,
+        abortSource: combined.source,
+      })
+      combined.throwIfAborted()
+      return {
+        ...response,
+        provider: normalized.provider,
+        latencyMs: Math.max(0, Math.round(performance.now() - started)),
+      } as FetchResponse<P>
+    } catch (error) {
+      if (combined.source() !== undefined && !isSearchSuiteError(error)) {
+        throw new ProviderUnavailableError('Fetch provider request failed', {
+          provider,
+          operation: 'fetch',
           retryable: true,
           cause: error,
         })

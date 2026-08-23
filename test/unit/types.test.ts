@@ -1,9 +1,14 @@
 import { expectTypeOf, test } from 'vitest'
 import type {
   ProviderOptionsFor,
+  SearchOptionsFor,
   SearchEngine,
   SearchRequest,
   SearchResponse,
+  SearchResponseFor,
+  FetchRequest,
+  WebFetchProvider,
+  WebFetchResult,
 } from '../../src/types.js'
 
 test('engine is a union of the five initial provider engine namespaces', () => {
@@ -29,6 +34,16 @@ test('response preserves the engine literal', () => {
   } | undefined>()
 })
 
+test('provider-first requests infer provider options and response provider', () => {
+  expectTypeOf<SearchOptionsFor<'exa'>>().toMatchTypeOf<{
+    searchType?: 'auto' | 'keyword' | 'neural'
+  }>()
+  expectTypeOf<SearchResponseFor<'tavily'>['provider']>().toEqualTypeOf<'tavily'>()
+  expectTypeOf<FetchRequest<'exa'>['providerOptions']>().toMatchTypeOf<{
+    maxCharacters?: number
+  } | undefined>()
+})
+
 test('result and response fields are JSON-friendly', () => {
   expectTypeOf<SearchResponse['results']>().toEqualTypeOf<Array<{
     title: string
@@ -41,3 +56,21 @@ test('result and response fields are JSON-friendly', () => {
   }>>()
 })
 
+test('web fetch contract is compatible with a dsh-style provider', () => {
+  const result: WebFetchResult = {
+    url: 'https://example.com/article',
+    statusCode: 200,
+    body: { kind: 'text', content: '# Article' },
+    truncated: false,
+  }
+  const provider: WebFetchProvider = {
+    id: 'tavily',
+    available: () => true,
+    fetch: async (_request, _signal) => result,
+  }
+
+  expectTypeOf<typeof provider.fetch>().toMatchTypeOf<(
+    request: { readonly url: string },
+    signal?: AbortSignal,
+  ) => Promise<WebFetchResult>>()
+})

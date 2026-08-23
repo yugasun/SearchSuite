@@ -75,6 +75,7 @@ export function createExaProvider(context: ProviderContext): SearchProvider {
         }).filter((item): item is NonNullable<typeof item> => item !== undefined)
         : []
       return {
+        provider: 'exa',
         query: request.query,
         engine,
         results,

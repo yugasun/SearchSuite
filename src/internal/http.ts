@@ -12,7 +12,8 @@ import type { ProviderId, SearchEngine } from '../types.js'
 export interface RequestJsonOptions {
   fetch: typeof globalThis.fetch
   provider: ProviderId
-  engine: SearchEngine
+  engine?: SearchEngine
+  operation?: 'search' | 'fetch'
   url: string
   init?: RequestInit
   signal?: AbortSignal
@@ -32,7 +33,8 @@ async function readBody(response: Response): Promise<unknown> {
 function providerContext(options: RequestJsonOptions, raw?: unknown) {
   return {
     provider: options.provider,
-    engine: options.engine,
+    ...(options.engine === undefined ? {} : { engine: options.engine }),
+    ...(options.operation === undefined ? {} : { operation: options.operation }),
     ...(raw === undefined ? {} : { raw }),
   }
 }
