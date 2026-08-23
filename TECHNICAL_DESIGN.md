@@ -209,7 +209,7 @@ Provider 在第一次使用时解析配置。支持注入 `fetch`，便于测试
 - Vitest 覆盖 Core、Provider Mapping、Type Inference 和公共 Contract。
 - Live Test 由 Provider 环境变量保护，默认跳过。
 - CI 在 Node.js 24 和 Node Current 执行依赖安装、typecheck、lint、离线 test、build 和 publint。
-- pack 后的 ESM 与类型 smoke test 是当前的本地发布门禁，尚未进入 CI workflow。
+- `pnpm pack` 后在干净 consumer 中执行 ESM 与类型 smoke test，是发布前待手动执行的 checklist 项，尚未进入 CI workflow。
 - 发布包必须保持零 runtime dependency。
 
 ## 10. v0.1 完成定义
@@ -221,7 +221,8 @@ Provider 在第一次使用时解析配置。支持注入 `fetch`，便于测试
 - [x] 支持显式配置、环境变量、注入 fetch 与 AbortSignal
 - [x] Provider/Response/Result 的 safe raw 得到保留
 - [x] Unit、Contract、类型和凭据门控的可选 Live Test 已实现
-- [x] `pnpm pack` 后在干净环境通过 ESM 与类型 smoke test
+- [x] ESM、类型声明和 sourcemap 构建及 publint 检查通过
+- [ ] 发布前执行 `pnpm pack`，并在干净 consumer 中完成 ESM 与类型 smoke test
 - [x] README、示例、能力矩阵、CHANGELOG 与 MIT License 已提供
 - [x] 未包含 v0.1 明确排除的 Router、dsh plugin 等能力
 - [ ] 完成本轮公开文档重构与发布前复核
