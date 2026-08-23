@@ -1,7 +1,10 @@
 export type {
   BaiduAiSearchOptions,
+  BaiduAiProviderSearchOptions,
+  BaiduSearchMode,
   BaiduSearchOptions,
   BaiduConfig,
+  BaiduWebSearchOptions,
   DoubaoConfig,
   DoubaoCustomSearchOptions,
   DoubaoGlobalSearchOptions,
