@@ -26,6 +26,12 @@ describe('engine parsing', () => {
   })
 
   test('resolves provider-first modes without exposing endpoint names', () => {
+    expect(resolveProviderEngine('baidu', { mode: 'ai', model: 'custom-model' })).toEqual({
+      provider: 'baidu',
+      name: 'ai',
+      full: 'baidu:ai',
+      providerOptions: { model: 'custom-model' },
+    })
     expect(resolveProviderEngine('exa', { searchType: 'neural', highlightsPerUrl: 2 })).toMatchObject({
       provider: 'exa',
       full: 'exa:neural',

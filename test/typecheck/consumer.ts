@@ -22,6 +22,29 @@ const providerResponse = await client.search({
 const providerTyped: SearchResponseFor<'exa'> = providerResponse
 void providerTyped
 
+const baiduWeb = await client.search({
+  provider: 'baidu',
+  query: 'ordinary web search',
+  providerOptions: { mode: 'web' },
+})
+const baiduAi = await client.search({
+  provider: 'baidu',
+  query: 'AI search',
+  providerOptions: { mode: 'ai', model: 'ernie-4.5-turbo-32k' },
+})
+void baiduWeb
+void baiduAi
+
+await client.search({
+  provider: 'baidu',
+  query: 'ordinary web search',
+  providerOptions: {
+    mode: 'web',
+    // @ts-expect-error model is only valid for Baidu AI search.
+    model: 'not-valid-for-web',
+  },
+})
+
 const fetched = await client.fetch({
   provider: 'exa',
   url: 'https://example.com/article',

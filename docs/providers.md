@@ -47,8 +47,11 @@ at runtime for untyped input.
 
 Provider options:
 
-- `mode?: 'web' | 'ai'` selects ordinary or AI search; the default is `web`.
-- `model?: string` applies to AI search.
+- `mode?: 'web'` selects ordinary web search; it is the default.
+- `mode: 'ai'` selects AI search and enables `model?: string`.
+
+The Provider-first `BaiduSearchOptions` type is discriminated the same way, so
+an AI model cannot accidentally be sent to ordinary web search.
 
 The query limit is 72 weighted units: ASCII code points count as one unit and
 non-ASCII code points count as two. Longer queries are truncated and emit a

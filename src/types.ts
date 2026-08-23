@@ -4,6 +4,8 @@ export type ProviderId = 'baidu' | 'doubao' | 'tavily' | 'exa' | 'serper'
 
 export type FetchProviderId = 'tavily' | 'exa'
 
+export type BaiduSearchMode = 'web' | 'ai'
+
 export interface EngineMap {
   baidu: 'web' | 'ai'
   doubao: 'custom' | 'global'
@@ -30,9 +32,15 @@ export interface BaiduAiSearchOptions {
   model?: string
 }
 
-export interface BaiduSearchOptions extends BaiduAiSearchOptions {
-  mode?: 'web' | 'ai'
+export interface BaiduWebSearchOptions {
+  mode?: 'web'
 }
+
+export interface BaiduAiProviderSearchOptions extends BaiduAiSearchOptions {
+  mode: 'ai'
+}
+
+export type BaiduSearchOptions = BaiduWebSearchOptions | BaiduAiProviderSearchOptions
 
 export interface DoubaoCustomSearchOptions {
   needSummary?: boolean

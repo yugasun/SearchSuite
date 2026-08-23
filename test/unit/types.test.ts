@@ -1,5 +1,6 @@
 import { expectTypeOf, test } from 'vitest'
 import type {
+  BaiduSearchOptions,
   ProviderOptionsFor,
   SearchOptionsFor,
   SearchEngine,
@@ -35,6 +36,9 @@ test('response preserves the engine literal', () => {
 })
 
 test('provider-first requests infer provider options and response provider', () => {
+  expectTypeOf<BaiduSearchOptions>().toMatchTypeOf<
+    { mode?: 'web' } | { mode: 'ai'; model?: string }
+  >()
   expectTypeOf<SearchOptionsFor<'exa'>>().toMatchTypeOf<{
     searchType?: 'auto' | 'keyword' | 'neural'
   }>()
