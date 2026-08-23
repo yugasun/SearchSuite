@@ -17,7 +17,11 @@ literal `provider:engine`; the engine determines the valid TypeScript
 Every provider accepts explicit `apiKey` and `baseUrl` configuration. Each field
 is resolved independently: an explicit `apiKey` overrides the provider's
 environment variables, while an explicit `baseUrl` overrides the default
-endpoint. Omitting one field does not change how another field is resolved.
+endpoint. Omitting one field does not change how another field is resolved. The
+only compatibility exception is Doubao: the exact legacy base URL
+`https://ark.cn-beijing.volces.com/api/v3` is remapped to
+`https://open.feedcoopapi.com`; any other valid explicit HTTP(S) base URL is used
+as provided.
 
 ```ts
 import { SearchSuite } from 'searchsuite'
@@ -99,8 +103,10 @@ custom search and 20 for global search.
 
 Credentials use `DOUBAO_API_KEY` and then `DOUBAO_SEARCH_API_KEY`. Explicit
 `providers.doubao.apiKey` and `providers.doubao.baseUrl` override credential
-lookup and the default endpoint respectively. The adapter does not synthesize a
-top-level answer.
+lookup and the default endpoint respectively. For compatibility, the exact
+legacy base URL `https://ark.cn-beijing.volces.com/api/v3` is remapped to
+`https://open.feedcoopapi.com`; other valid explicit HTTP(S) base URLs are used
+as provided. The adapter does not synthesize a top-level answer.
 
 ## Tavily
 
@@ -144,9 +150,10 @@ const response = await client.search({
 `providers.tavily.apiKey` and `providers.tavily.baseUrl` override credential
 lookup and the default endpoint respectively.
 
-When requested and returned by Tavily, a non-empty provider answer is exposed as
-the top-level `answer`. SearchSuite does not construct an answer from result
-snippets.
+`includeAnswer` controls whether the request asks Tavily to generate an answer.
+Independently of that request option, the adapter exposes any non-empty `answer`
+returned by Tavily as the top-level `answer`. SearchSuite does not construct an
+answer from result snippets.
 
 ## Exa
 

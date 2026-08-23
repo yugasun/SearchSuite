@@ -68,9 +68,10 @@ const client = new SearchSuite({
 })
 ```
 
-Every provider accepts explicit `apiKey` and `baseUrl` fields. Baidu also accepts
-an explicit default `model`; see the [provider guide](providers.md) for the full
-engine-specific behavior.
+Every provider accepts explicit `apiKey` and `baseUrl` fields. Doubao remaps one
+exact legacy Ark endpoint for compatibility; Baidu also accepts an explicit
+default `model`. See the [provider guide](providers.md) for those provider-specific
+details.
 
 ## Use a `.env` file locally
 
