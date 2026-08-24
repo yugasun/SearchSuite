@@ -1,6 +1,6 @@
 {
   "name": "searchsuite",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A type-safe TypeScript SDK for Baidu, Doubao, Tavily, Exa, and Serper search.",
   "keywords": [
     "search",
