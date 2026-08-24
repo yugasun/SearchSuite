@@ -1,5 +1,12 @@
 # searchsuite
 
+## 0.1.3
+
+### Patch Changes
+
+- de65b34: Fix provider-first searches so consumed mode selectors are not forwarded to
+  provider adapters as unknown provider options.
+
 ## 0.1.2
 
 ### Patch Changes
