@@ -122,8 +122,8 @@ export class SearchSuite {
     const internalRequest = {
       ...request,
       engine: resolved.full,
-      ...('providerOptions' in resolved && resolved.providerOptions !== undefined
-        ? { providerOptions: resolved.providerOptions }
+      ...('provider' in request
+        ? { providerOptions: 'providerOptions' in resolved ? resolved.providerOptions : undefined }
         : {}),
     } as SearchRequest<SearchEngine>
     const combined = combineSignals(this.timeoutMs, request.signal)

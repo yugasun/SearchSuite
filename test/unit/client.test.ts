@@ -63,6 +63,38 @@ describe('SearchSuite client', () => {
     expect(response.engine).toBe('tavily:advanced')
   })
 
+  test('does not forward a consumed provider mode to the provider adapter', async () => {
+    let receivedOptions: unknown
+    const provider = {
+      ...makeProvider({
+        includeDomains: true,
+        excludeDomains: true,
+        timeRange: true,
+        content: true,
+        score: true,
+      }),
+      async search(request: Parameters<SearchProvider['search']>[0]) {
+        receivedOptions = request.providerOptions
+        return {
+          provider: 'tavily' as const,
+          query: request.query,
+          engine: request.engine,
+          results: [{ title: 'Example', url: 'https://example.com' }],
+          latencyMs: 0,
+        }
+      },
+    }
+    const client = new SearchSuite({}, createProviderRegistry({ tavily: () => provider }))
+
+    await client.search({
+      provider: 'tavily',
+      query: 'hello',
+      providerOptions: { searchDepth: 'advanced' },
+    })
+
+    expect(receivedOptions).toBeUndefined()
+  })
+
   test('fetches page content through the selected provider', async () => {
     const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({
       results: [{ url: 'https://example.com/article', text: 'Article content' }],
