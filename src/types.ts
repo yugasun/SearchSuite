@@ -1,8 +1,8 @@
 import type { ProviderCapabilities } from './capabilities.js'
 
-export type ProviderId = 'baidu' | 'doubao' | 'tavily' | 'exa' | 'serper'
+export type ProviderId = 'baidu' | 'doubao' | 'tavily' | 'exa' | 'serper' | 'deepseek' | 'zhipu' | 'bocha' | 'alibaba'
 
-export type FetchProviderId = 'tavily' | 'exa'
+export type FetchProviderId = 'tavily' | 'exa' | 'deepseek' | 'zhipu'
 
 export type BaiduSearchMode = 'web' | 'ai'
 
@@ -14,6 +14,10 @@ export interface EngineMap {
   tavily: 'basic' | 'advanced' | 'fast' | 'ultra-fast'
   exa: 'auto' | 'keyword' | 'neural'
   serper: 'google'
+  deepseek: 'web'
+  zhipu: 'web'
+  bocha: 'web'
+  alibaba: 'web'
 }
 
 export type SearchEngine = {
@@ -84,6 +88,27 @@ export interface SerperSearchOptions {
   hl?: string
 }
 
+export interface DeepSeekSearchOptions {
+  needContent?: boolean
+  originalQuestion?: string
+  localization?: string
+}
+
+export interface ZhipuSearchOptions {
+  searchEngine?: 'search_std' | 'search_pro' | 'search_pro_sogou' | 'search_pro_quark'
+  contentSize?: 'medium' | 'high'
+  searchIntent?: boolean
+}
+
+export interface BochaSearchOptions {
+  summary?: boolean
+  freshness?: string
+}
+
+export interface AlibabaSearchOptions {
+  model?: string
+}
+
 export type ProviderOptionsFor<E extends SearchEngine> =
   E extends 'baidu:web' ? NoProviderOptions
     : E extends 'baidu:ai' ? BaiduAiSearchOptions
@@ -93,7 +118,11 @@ export type ProviderOptionsFor<E extends SearchEngine> =
             : E extends `tavily:${string}` ? TavilySearchOptions
               : E extends `exa:${string}` ? ExaSearchOptions
                 : E extends 'serper:google' ? SerperSearchOptions
-                  : never
+                  : E extends 'deepseek:web' ? DeepSeekSearchOptions
+                    : E extends 'zhipu:web' ? ZhipuSearchOptions
+                      : E extends 'bocha:web' ? BochaSearchOptions
+                        : E extends 'alibaba:web' ? AlibabaSearchOptions
+                          : never
 
 export type SearchOptionsFor<P extends ProviderId> =
   P extends 'baidu' ? BaiduSearchOptions
@@ -101,7 +130,11 @@ export type SearchOptionsFor<P extends ProviderId> =
       : P extends 'tavily' ? TavilySearchOptions | TavilyAdvancedSearchOptions
         : P extends 'exa' ? ExaSearchOptions
           : P extends 'serper' ? SerperSearchOptions
-            : never
+            : P extends 'deepseek' ? DeepSeekSearchOptions
+              : P extends 'zhipu' ? ZhipuSearchOptions
+                : P extends 'bocha' ? BochaSearchOptions
+                  : P extends 'alibaba' ? AlibabaSearchOptions
+                    : never
 
 export interface SearchRequest<E extends SearchEngine = SearchEngine> {
   engine: E
@@ -193,11 +226,25 @@ export interface TavilyFetchOptions {
 export interface ExaFetchOptions {
   maxCharacters?: number
 }
+export interface DeepSeekFetchOptions extends NoProviderOptions {}
+
+export interface ZhipuFetchOptions {
+  timeoutSeconds?: number
+  noCache?: boolean
+  format?: 'markdown' | 'text'
+  retainImages?: boolean
+  noGfm?: boolean
+  keepImgDataUrl?: boolean
+  withImagesSummary?: boolean
+  withLinksSummary?: boolean
+}
 
 export type FetchOptionsFor<P extends FetchProviderId> =
   P extends 'tavily' ? TavilyFetchOptions
     : P extends 'exa' ? ExaFetchOptions
-      : never
+    : P extends 'deepseek' ? DeepSeekFetchOptions
+      : P extends 'zhipu' ? ZhipuFetchOptions
+        : never
 
 export interface FetchRequest<P extends FetchProviderId = FetchProviderId> {
   provider: P
@@ -228,12 +275,21 @@ export type ExaConfig = ProviderConfig
 
 export type SerperConfig = ProviderConfig
 
+export type DeepSeekConfig = ProviderConfig
+export type ZhipuConfig = ProviderConfig
+export type BochaConfig = ProviderConfig
+export type AlibabaConfig = ProviderConfig
+
 export interface ProviderConfigMap {
   baidu?: BaiduConfig
   doubao?: DoubaoConfig
   tavily?: TavilyConfig
   exa?: ExaConfig
   serper?: SerperConfig
+  deepseek?: DeepSeekConfig
+  zhipu?: ZhipuConfig
+  bocha?: BochaConfig
+  alibaba?: AlibabaConfig
 }
 
 export type UnsupportedParamMode = 'strict' | 'warn' | 'ignore'

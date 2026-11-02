@@ -1,7 +1,7 @@
-import { InvalidRequestError } from '../errors.js'
 import { requestJson } from '../internal/http.js'
 import {
   fetchProviderOptions,
+  providerOptionRules,
   record,
   resolveProviderConfig,
   safeRaw,
@@ -10,6 +10,12 @@ import type { FetchProvider } from '../provider.js'
 import type { ProviderContext, WebFetchResult } from '../types.js'
 
 const DEFAULT_BASE_URL = 'https://api.tavily.com'
+
+const ALLOWED_OPTIONS = ['extractDepth', 'format'] as const
+const OPTION_RULES = {
+  extractDepth: providerOptionRules.nullable(providerOptionRules.oneOf(['basic', 'advanced'])),
+  format: providerOptionRules.nullable(providerOptionRules.oneOf(['markdown', 'text'])),
+} as const
 
 function textResult(url: string, content: string, raw: unknown): WebFetchResult {
   return {
@@ -27,25 +33,9 @@ export function createTavilyFetchProvider(context: ProviderContext): FetchProvid
   return {
     id: 'tavily',
     async fetch(request, fetchContext): Promise<WebFetchResult> {
-      const options = fetchProviderOptions(
-        request.providerOptions,
-        ['extractDepth', 'format'],
-        'tavily',
-      )
+      const options = fetchProviderOptions(request.providerOptions, ALLOWED_OPTIONS, 'tavily', OPTION_RULES)
       const extractDepth = options.extractDepth ?? 'basic'
       const format = options.format ?? 'markdown'
-      if (extractDepth !== 'basic' && extractDepth !== 'advanced') {
-        throw new InvalidRequestError('Tavily extractDepth must be basic or advanced', {
-          provider: 'tavily',
-          operation: 'fetch',
-        })
-      }
-      if (format !== 'markdown' && format !== 'text') {
-        throw new InvalidRequestError('Tavily format must be markdown or text', {
-          provider: 'tavily',
-          operation: 'fetch',
-        })
-      }
 
       const payload = await requestJson({
         fetch: fetchContext.fetch,

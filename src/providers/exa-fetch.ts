@@ -1,7 +1,7 @@
-import { InvalidRequestError } from '../errors.js'
 import { requestJson } from '../internal/http.js'
 import {
   fetchProviderOptions,
+  providerOptionRules,
   record,
   resolveProviderConfig,
   safeRaw,
@@ -12,26 +12,17 @@ import type { ProviderContext, WebFetchResult } from '../types.js'
 const DEFAULT_BASE_URL = 'https://api.exa.ai'
 const DEFAULT_MAX_CHARACTERS = 100_000
 
+const ALLOWED_OPTIONS = ['maxCharacters'] as const
+const OPTION_RULES = { maxCharacters: providerOptionRules.positiveSafeInteger } as const
+
 export function createExaFetchProvider(context: ProviderContext): FetchProvider<'exa'> {
   const config = resolveProviderConfig(context, 'exa', ['EXA_API_KEY'], DEFAULT_BASE_URL)
 
   return {
     id: 'exa',
     async fetch(request, fetchContext): Promise<WebFetchResult> {
-      const options = fetchProviderOptions(
-        request.providerOptions,
-        ['maxCharacters'],
-        'exa',
-      )
-      const rawMaxCharacters = options.maxCharacters
-      const maxCharacters = rawMaxCharacters === undefined ? DEFAULT_MAX_CHARACTERS : rawMaxCharacters
-      if (typeof maxCharacters !== 'number' || !Number.isSafeInteger(maxCharacters) || maxCharacters < 1) {
-        throw new InvalidRequestError('Exa maxCharacters must be a positive safe integer', {
-          provider: 'exa',
-          operation: 'fetch',
-        })
-      }
-
+      const options = fetchProviderOptions(request.providerOptions, ALLOWED_OPTIONS, 'exa', OPTION_RULES)
+      const maxCharacters = options.maxCharacters === undefined ? DEFAULT_MAX_CHARACTERS : options.maxCharacters as number
       const payload = await requestJson({
         fetch: fetchContext.fetch,
         provider: 'exa',

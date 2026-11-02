@@ -1,6 +1,6 @@
 # Providers
 
-SearchSuite v0.1 implements five thin search Provider adapters and two content
+SearchSuite v0.1 implements nine thin search Provider adapters and four content
 Provider adapters. Select a Provider by name; the operation (`search()` or
 `fetch()`) determines the upstream request mapping. Provider-specific modes are
 semantic `providerOptions`, not endpoint names.
@@ -14,6 +14,10 @@ semantic `providerOptions`, not endpoint names.
 | Tavily | `basic` | Yes | `TAVILY_API_KEY` | `https://api.tavily.com` | 20 |
 | Exa | `auto` | Yes | `EXA_API_KEY` | `https://api.exa.ai` | 100 |
 | Serper | `google` | — | `SERPER_API_KEY` | `https://google.serper.dev` | 100 |
+| DeepSeek | `web` | Yes | `DEEPSEEK_API_KEY` | `https://api.deepseek.com` | 50 |
+| Zhipu | `web` | Yes | `ZHIPU_API_KEY` | `https://open.bigmodel.cn/api` | 50 |
+| Bocha | `web` | — | `BOCHA_API_KEY` | `https://api.bochaai.com` | 50 |
+| Alibaba | `web` | — | `DASHSCOPE_API_KEY` | Required workspace origin | Local source cap |
 
 Every provider accepts explicit `apiKey` and `baseUrl` configuration. Each field
 is resolved independently: an explicit `apiKey` overrides the provider's
@@ -23,6 +27,9 @@ only compatibility exception is Doubao: the exact legacy base URL
 `https://ark.cn-beijing.volces.com/api/v3` is remapped to
 `https://open.feedcoopapi.com`; any other valid explicit HTTP(S) base URL is used
 as provided.
+
+Alibaba is the exception to default endpoint resolution: configure its workspace
+origin explicitly with `providers.alibaba.baseUrl` (see below).
 
 ```ts
 import { SearchSuite } from 'searchsuite'
@@ -212,9 +219,146 @@ A non-empty answer-box snippet is exposed as the top-level `answer`; otherwise a
 non-empty knowledge-graph description is used. SearchSuite does not construct an
 answer from organic snippets.
 
+## DeepSeek
+
+Uses `deepseek:web` with `DEEPSEEK_API_KEY` and `https://api.deepseek.com`.
+`maxResults` is capped at 50. Options are `needContent?: boolean`,
+`originalQuestion?: string`, and `localization?: string`:
+
+```ts
+const response = await client.search({
+  provider: 'deepseek',
+  query: 'TypeScript search SDKs',
+  maxResults: 5,
+  providerOptions: { needContent: true, originalQuestion: 'Which SDK should I use?' },
+})
+```
+
+This adapter uses the dedicated search capability; it does not generate a chat
+answer. Search access must be enabled for the account; possession of a model API
+key alone does not guarantee access.
+
+## Zhipu
+
+Uses `zhipu:web`, `ZHIPU_API_KEY`, and
+`POST https://open.bigmodel.cn/api/paas/v4/web_search`.
+`maxResults` is capped at 50. Options are `searchEngine` (default `search_std`;
+accepted values: `search_std`, `search_pro`, `search_pro_sogou`, and
+`search_pro_quark`), `contentSize?: 'medium' | 'high'`, and
+`searchIntent?: boolean` (default false). The upstream documentation describes
+medium content as the default; the adapter leaves `contentSize` unset unless
+requested. With `search_pro_sogou`, requested counts from 10 through 49 are
+rounded up to the next multiple of 10 (up to 50), then normalized results are
+still limited to the requested `maxResults`.
+
+```ts
+const response = await client.search({
+  provider: 'zhipu',
+  query: 'Recent AI research',
+  maxResults: 12,
+  providerOptions: { searchEngine: 'search_pro_sogou' },
+})
+```
+
+Search-engine availability depends on the upstream service and account. Common
+domain filters and `timeRange` are not mapped; provider result scores are not
+mapped. See the official [Web Search reference](https://docs.bigmodel.cn/api-reference/%E5%B7%A5%E5%85%B7-api/%E7%BD%91%E7%BB%9C%E6%90%9C%E7%B4%A2).
+
+## Bocha
+
+Uses `bocha:web`, `BOCHA_API_KEY`, and `POST https://api.bochaai.com/v1/web-search`.
+`maxResults` is capped at 50. Options are `summary?: boolean` (adapter default
+false) and `freshness?: string`. Accepted freshness values are `noLimit`,
+`oneYear`, `oneMonth`, `oneWeek`, `oneDay`, a date (`YYYY-MM-DD`), or a date
+range (`YYYY-MM-DD..YYYY-MM-DD`). Common `timeRange` values map to the matching
+`oneDay`, `oneWeek`, `oneMonth`, or `oneYear` setting. An explicit `freshness`
+option takes precedence over `timeRange`.
+
+```ts
+const response = await client.search({
+  provider: 'bocha',
+  query: 'Recent AI research',
+  providerOptions: { summary: true, freshness: 'oneYear' },
+})
+```
+
+`summary` requests per-result summaries; it does not produce a top-level
+`answer`. Common domain filters are not mapped. See the
+[official Bocha documentation](https://open.bochaai.com/).
+
+## Alibaba
+
+Uses `alibaba:web` and `DASHSCOPE_API_KEY`. Configure the origin for the region
+hosting your Model Studio workspace explicitly:
+
+```ts
+const alibaba = new SearchSuite({
+  providers: {
+    alibaba: {
+      apiKey: process.env.DASHSCOPE_API_KEY,
+      baseUrl: 'https://dashscope.aliyuncs.com', // Supported legacy origin; workspace origin is recommended.
+    },
+  },
+})
+const response = await alibaba.search({
+  provider: 'alibaba',
+  query: 'Recent AI research',
+  maxResults: 5,
+  providerOptions: { model: 'qwen-plus' },
+})
+```
+
+`model?: string` defaults to `qwen-plus`. This adapter calls native DashScope
+model generation with web search enabled, `forced_search: true`, and
+`enable_source: true`; it is not an OpenAI-compatible endpoint or a standalone
+search-only API. The provider-generated answer becomes `answer` and search
+sources become results. The chosen model and account must support web search.
+`maxResults` caps normalized sources locally; it does not limit model output,
+token use, upstream search activity, or billing. Model/token charges and search
+charges may both apply. See the official
+[Model Studio web search guide](https://help.aliyun.com/zh/model-studio/web-search).
+Configure an origin without `/api/v1`; SearchSuite appends the native API path.
+The legacy origin `https://dashscope.aliyuncs.com` remains supported. A recommended
+workspace origin has the form `https://{WorkspaceId}.cn-beijing.maas.aliyuncs.com`;
+use the region and API key belonging to your workspace. No page content Fetch provider is added.
+
+## DeepSeek page content
+
+DeepSeek uses `POST https://api.deepseek.com/v1/tools/fetch` with `{ url }` and
+`DEEPSEEK_API_KEY`. The URL must be HTTP(S), contain no credentials, and be at
+most 8192 characters after URL normalization. The API returns a title and Markdown
+content; SearchSuite maps content as text and preserves the requested URL. The
+API exposes no options. See the official [Fetch API](https://api-docs.deepseek.com/api/fetch.md).
+The upstream API does not report the target page's HTTP status or truncation;
+`statusCode: 200` represents non-empty extracted content and `truncated: false`
+means SearchSuite did not apply a local limit. Empty content maps to `502`.
+
+## Zhipu page content
+
+Zhipu uses `POST https://open.bigmodel.cn/api/paas/v4/reader` with
+`ZHIPU_API_KEY`. Optional fields map to `timeout`, `no_cache`, `return_format`,
+`retain_images`, `no_gfm`, `keep_img_data_url`, `with_images_summary`, and
+`with_links_summary`:
+
+```ts
+const page = await client.fetch({
+  provider: 'zhipu',
+  url: 'https://example.com/article',
+  providerOptions: { format: 'text', noCache: true },
+})
+```
+
+`timeoutSeconds` is a positive safe integer in seconds; `format` accepts
+`'markdown'` or `'text'`. The response content is text and the input URL is
+preserved. The upstream response has no truncation indicator; `truncated: false`
+means SearchSuite did not apply a local content limit, not that upstream content
+is guaranteed complete. Bocha's public API documents search and rerank, while
+Alibaba's Web Extractor is a model tool, not an independent content API; neither
+is exposed through `client.fetch()`.
+
 ## Page content fetching
 
-Only Tavily and Exa currently implement `client.fetch()`:
+All four currently implement `client.fetch()`:
 
 ```ts
 const tavilyPage = await client.fetch({
@@ -230,20 +374,24 @@ const exaPage = await client.fetch({
 })
 ```
 
-Tavily maps to its Extract capability and Exa maps to Contents internally. The
-caller chooses only `tavily` or `exa`; endpoint names are not part of the
-public API. DSH's direct HTTP fetch remains outside this SDK and can still be
-selected by an integration layer.
+Tavily maps to Extract, Exa to Contents, DeepSeek to its Fetch tool, and Zhipu
+to its Reader API. DSH direct HTTP fetch remains outside this SDK.
+
+All fetch URLs are parsed and normalized as absolute HTTP(S) URLs before provider
+initialization. DeepSeek and Zhipu reject URL credentials; DeepSeek also applies
+the serialized URL length limit above. Provider option value errors use the
+shared `Provider option` wording and retain the provider and `operation: 'fetch'`
+metadata.
 
 ## Common capability matrix
 
-| Common adapter capability | Baidu | Doubao | Tavily | Exa | Serper |
-| --- | :---: | :---: | :---: | :---: | :---: |
-| `includeDomains` | — | — | Yes | — | — |
-| `excludeDomains` | — | — | Yes | — | — |
-| `timeRange` | — | — | Yes | — | — |
-| `content` capability flag | — | Yes | Yes | Yes | Yes |
-| Provider score mapping | — | — | Yes | — | — |
+| Common adapter capability | Baidu | Doubao | Tavily | Exa | Serper | DeepSeek | Zhipu | Bocha | Alibaba |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `includeDomains` | — | — | Yes | — | — | — | — | — | — |
+| `excludeDomains` | — | — | Yes | — | — | — | — | — | — |
+| `timeRange` | — | — | Yes | — | — | — | — | Yes | — |
+| `content` capability flag | — | Yes | Yes | Yes | Yes | Yes | Yes | Yes | — |
+| Provider score mapping | — | — | Yes | — | — | Yes | — | — | — |
 
 A capability means that the current SearchSuite adapter maps the common contract
 for that provider. It is not a claim about every feature available in the

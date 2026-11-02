@@ -7,7 +7,8 @@
 ![ESM only](https://img.shields.io/badge/modules-ESM--only-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-用一套类型安全的 API 接入百度、豆包、Tavily、Exa 和 Serper 搜索及网页内容获取。
+用一套类型安全的 API 接入百度、豆包、Tavily、Exa、Serper、DeepSeek、智谱、博查和
+阿里云搜索，并通过 Tavily、Exa、DeepSeek 和智谱获取网页内容。
 
 SearchSuite 是独立于框架的 TypeScript SDK。调用方只需要选择 Provider，
 再使用搜索或内容获取接口：
@@ -23,7 +24,7 @@ const response = await client.search({
 })
 
 const page = await client.fetch({
-  provider: 'tavily',
+  provider: 'deepseek',
   url: 'https://example.com/article',
 })
 ```
@@ -83,6 +84,10 @@ SearchSuite 会在 Provider 首次使用时读取环境变量，但不会自行�
 | Tavily | `tavily:basic`, `tavily:advanced`, `tavily:fast`, `tavily:ultra-fast` | `TAVILY_API_KEY` |
 | Exa | `exa:auto`, `exa:keyword`, `exa:neural` | `EXA_API_KEY` |
 | Serper | `serper:google` | `SERPER_API_KEY` |
+| DeepSeek | `deepseek:web` | `DEEPSEEK_API_KEY` |
+| Zhipu（智谱） | `zhipu:web` | `ZHIPU_API_KEY` |
+| Bocha（博查） | `bocha:web` | `BOCHA_API_KEY` |
+| Alibaba（阿里云） | `alibaba:web` | `DASHSCOPE_API_KEY`；必须显式配置工作空间 `baseUrl` |
 
 切换 Provider 只需更换 `provider`：
 
@@ -95,6 +100,23 @@ const response = await client.search({
 
 显式 Provider 配置优先于环境变量，环境变量优先于 Provider 默认值。有关能力、
 限制、选项和标准化字段，请参阅 [Provider 指南](docs/providers.md)。
+
+阿里云除 API Key 外，还必须显式设置工作空间所在区域的 origin：
+
+```ts
+const alibaba = new SearchSuite({
+  providers: { alibaba: { baseUrl: 'https://dashscope.aliyuncs.com' } },
+})
+const response = await alibaba.search({
+  provider: 'alibaba',
+  query: 'Recent AI research',
+  providerOptions: { model: 'qwen-plus' },
+})
+```
+
+请使用与工作空间匹配的区域 origin。阿里云返回模型生成的回答和搜索来源，可能同时
+产生模型/token 和搜索费用；`maxResults` 只在本地裁剪返回的来源。新增四个 Provider
+支持搜索；Tavily、Exa、DeepSeek 和智谱也支持网页内容获取。
 
 ## 文档
 

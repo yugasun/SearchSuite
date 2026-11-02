@@ -115,6 +115,22 @@ describe('SearchSuite client', () => {
     expect(response.latencyMs).toBeGreaterThanOrEqual(0)
   })
 
+  test.each([
+    { provider: 'tavily' as const, url: '/relative' },
+    { provider: 'exa' as const, url: 'file:///article' },
+    { provider: 'deepseek' as const, url: 'https://user:password@example.com/' },
+    { provider: 'zhipu' as const, url: 'https://user@example.com/' },
+    { provider: 'deepseek' as const, url: `https://example.com/${'é'.repeat(1400)}` },
+  ])('rejects invalid $provider fetch URLs before resolving credentials', async (request) => {
+    const fetcher = vi.fn<typeof fetch>()
+    const client = new SearchSuite({ fetch: fetcher })
+
+    await expect(client.fetch(request)).rejects.toMatchObject({
+      code: 'INVALID_REQUEST', provider: request.provider, operation: 'fetch',
+    })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
   test('warn mode drops unsupported common parameters', async () => {
     const provider = makeProvider({
       includeDomains: false,

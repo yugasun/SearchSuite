@@ -50,10 +50,13 @@ producing zero upstream requests.
 There are no hidden retries, fallback requests, or composition calls.
 
 `SearchSuite.fetch()` follows the same lifecycle with a separate lazy fetch
-registry. It validates an absolute HTTP(S) URL, selects a content-capable
-Provider, passes the combined signal to Tavily Extract or Exa Contents, and
-returns normalized content plus latency. Search and fetch capabilities are
-separate; Baidu, Doubao, and Serper do not need to implement fetch.
+registry. Before provider initialization, `src/internal/fetch-normalize.ts` owns
+URL parsing, HTTP(S) validation, and provider-specific URL restrictions:
+DeepSeek and Zhipu reject credentials, and DeepSeek limits the serialized URL to
+8192 characters. Adapters receive the normalized URL without repeating these
+checks. The selected adapter maps to Tavily Extract, Exa Contents, DeepSeek Fetch,
+or Zhipu Reader and returns normalized content plus latency. Search and fetch
+capabilities remain separate.
 
 ## Component responsibilities
 
@@ -70,8 +73,11 @@ formats and does not select a Provider on the caller's behalf.
 [`src/registry.ts`](../src/registry.ts) contains an explicit factory for every
 built-in provider. It uses dynamic imports so an adapter is loaded on first use,
 not through directory scanning or eager imports. Initialization promises are
-cached per provider. A rejected initialization is removed from the cache so a
-later call can try configuration again.
+cached per provider. Both registries use one private lazy initialization helper,
+with independent factory maps and caches. Concurrent calls share the pending
+promise; synchronous factory throws become promise rejections. A rejected
+initialization is removed from the cache so a later call can try configuration
+again.
 
 The registry is intentionally closed over the v0.1 provider set. Adding a
 provider is an explicit source and documentation change.
@@ -91,6 +97,13 @@ Adapters do not implement retries, fallback, routing, result fusion, caching, or
 multi-key policy. Shared code remains small and functional: the HTTP boundary,
 signal combination, request normalization, safe raw handling, and result helpers.
 
+Search and fetch adapters use the same option validation loop in
+`src/internal/provider-utils.ts`. Each adapter keeps its allowlist and value
+rules beside its request mapping. Fetch validation tags errors with
+`operation: 'fetch'` and has no search engine metadata. Explicit `undefined`
+fetch options retain their optional behavior; Tavily's nullable options retain
+their defaults. Invalid value messages use the shared `Provider option` wording.
+
 ### Portable types
 
 [`src/types.ts`](../src/types.ts) contains common concepts that apply across
@@ -105,8 +118,8 @@ absolute HTTP(S) page URL and returns either HTML or text content, an HTTP
 status, and an explicit truncation flag. Its `id`, `available()`, and
 `fetch(request, signal?)` shape is compatible with dsh-web's provider contract.
 Provider selection, fallback, and direct HTTP fetching remain owned by an
-integration layer. SearchSuite owns the explicit Tavily and Exa content
-adapters, but still does not perform cross-Provider routing.
+integration layer. SearchSuite owns the explicit Tavily, Exa, DeepSeek, and
+Zhipu content adapters, but still does not perform cross-Provider routing.
 
 ## Configuration lifecycle
 

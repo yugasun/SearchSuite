@@ -56,7 +56,8 @@ request still uses `provider: 'tavily'`.
 
 [`ProviderSearchRequest`](../src/types.ts) contains:
 
-- `provider`: one of `baidu`, `doubao`, `tavily`, `exa`, or `serper`.
+- `provider`: one of `baidu`, `doubao`, `tavily`, `exa`, `serper`, `deepseek`,
+  `zhipu`, `bocha`, or `alibaba`.
 - `query`: the search query.
 - `maxResults`: requested result count; defaults to `10`.
 - `includeDomains` and `excludeDomains`: optional domain filters.
@@ -80,6 +81,13 @@ There is no `asearch` alias: `search()` is already asynchronous.
 The older `engine: 'provider:mode'` request form remains accepted for
 compatibility, but new integrations should use the Provider-first form above.
 
+DeepSeek, Zhipu, Bocha, and Alibaba resolve to `deepseek:web`, `zhipu:web`,
+`bocha:web`, and `alibaba:web`. Their typed `providerOptions` and configuration
+requirements are documented in the [provider guide](providers.md#deepseek).
+Alibaba requires `providers.alibaba.baseUrl` for the workspace origin; no region
+or workspace is inferred from `DASHSCOPE_API_KEY`. Its `maxResults` limits the
+returned source list locally, not the generated answer, token use, or search cost.
+
 ## `fetch(request)`
 
 ```ts
@@ -90,10 +98,10 @@ const page = await client.fetch({
 })
 ```
 
-`fetch<P extends FetchProviderId>()` supports `tavily` and `exa`. The Provider
-adapter chooses the upstream content endpoint internally. The response
-contains `provider`, the resolved URL, `statusCode`, a text or HTML `body`,
-`truncated`, and `latencyMs`.
+`fetch<P extends FetchProviderId>()` supports `tavily`, `exa`, `deepseek`, and
+`zhipu`. The Provider adapter chooses the upstream content endpoint internally.
+The response contains `provider`, the requested URL, `statusCode`, text or HTML
+`body`, `truncated`, and `latencyMs`.
 
 Fetch uses the same configured timeout, caller cancellation, injected fetch,
 safe `raw` handling, and shared Provider error mapping as search. SearchSuite

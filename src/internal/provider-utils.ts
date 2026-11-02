@@ -2,6 +2,7 @@ import { ConfigurationError, InvalidRequestError } from '../errors.js'
 import type { ProviderSearchContext } from '../provider.js'
 import { redactSecrets } from './redact.js'
 import type {
+  FetchProviderId,
   ProviderConfig,
   ProviderId,
   SearchEngine,
@@ -34,6 +35,7 @@ export const providerOptionRules = {
     `one of ${values.map((value) => JSON.stringify(value)).join(', ')}`,
     (value) => values.includes(value as T),
   ),
+  nullable: (rule: ProviderOptionRule) => optionRule(rule.description, (value) => value === null || rule.validate(value)),
   oneOfOrBoolean: <T extends string>(values: readonly T[]) => optionRule(
     `a boolean or one of ${values.map((value) => JSON.stringify(value)).join(', ')}`,
     (value) => typeof value === 'boolean' || values.includes(value as T),
@@ -71,62 +73,49 @@ export function resolveProviderConfig(
   return { apiKey, baseUrl }
 }
 
-export function providerOptions(
+function validateProviderOptions(
   value: unknown,
   allowed: readonly string[],
-  context: ProviderSearchContext,
-  provider: ProviderId,
-  engine: SearchEngine,
+  provider: ProviderId | FetchProviderId,
+  metadata: { engine?: SearchEngine; operation?: 'fetch' },
   rules: Readonly<Record<string, ProviderOptionRule>> = {},
 ): Record<string, unknown> {
+  const errorMetadata = { provider, ...metadata }
   if (value === undefined) return {}
   if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new InvalidRequestError('providerOptions must be an object', {
-      provider,
-      engine,
-    })
+    throw new InvalidRequestError('providerOptions must be an object', errorMetadata)
   }
   const options = value as Record<string, unknown>
   for (const key of Object.keys(options)) {
     if (!allowed.includes(key)) {
-      throw new InvalidRequestError(`Unknown provider option '${key}'`, {
-        provider,
-        engine,
-      })
+      throw new InvalidRequestError(`Unknown provider option '${key}'`, errorMetadata)
     }
     const rule = rules[key]
-    if (rule !== undefined && !rule.validate(options[key])) {
-      throw new InvalidRequestError(
-        `Provider option '${key}' must be ${rule.description}`,
-        { provider, engine },
-      )
+    if (rule !== undefined && !(metadata.operation === 'fetch' && options[key] === undefined) && !rule.validate(options[key])) {
+      throw new InvalidRequestError(`Provider option '${key}' must be ${rule.description}`, errorMetadata)
     }
   }
   return options
 }
 
+export function providerOptions(
+  value: unknown,
+  allowed: readonly string[],
+  _context: ProviderSearchContext,
+  provider: ProviderId,
+  engine: SearchEngine,
+  rules: Readonly<Record<string, ProviderOptionRule>> = {},
+): Record<string, unknown> {
+  return validateProviderOptions(value, allowed, provider, { engine }, rules)
+}
+
 export function fetchProviderOptions(
   value: unknown,
   allowed: readonly string[],
-  provider: string,
+  provider: FetchProviderId,
+  rules: Readonly<Record<string, ProviderOptionRule>> = {},
 ): Record<string, unknown> {
-  if (value === undefined) return {}
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    throw new InvalidRequestError('providerOptions must be an object', {
-      provider: provider as never,
-      operation: 'fetch',
-    })
-  }
-  const options = value as Record<string, unknown>
-  for (const key of Object.keys(options)) {
-    if (!allowed.includes(key)) {
-      throw new InvalidRequestError(`Unknown provider option '${key}'`, {
-        provider: provider as never,
-        operation: 'fetch',
-      })
-    }
-  }
-  return options
+  return validateProviderOptions(value, allowed, provider, { operation: 'fetch' }, rules)
 }
 
 export function clampMaxResults(
