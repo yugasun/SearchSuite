@@ -3,6 +3,10 @@ import { doubaoCustomResponse } from '../fixtures/doubao.js'
 import { exaResponse } from '../fixtures/exa.js'
 import { serperResponse } from '../fixtures/serper.js'
 import { tavilyResponse } from '../fixtures/tavily.js'
+import { deepseekResponse } from '../fixtures/deepseek.js'
+import { zhipuResponse } from '../fixtures/zhipu.js'
+import { bochaResponse } from '../fixtures/bocha.js'
+import { alibabaResponse } from '../fixtures/alibaba.js'
 import { makeContext, makeRequest, makeSearchContext } from '../helpers.js'
 import type { SearchProvider } from '../../src/provider.js'
 import type { SearchEngine } from '../../src/types.js'
@@ -11,11 +15,15 @@ import { createDoubaoProvider } from '../../src/providers/doubao.js'
 import { createExaProvider } from '../../src/providers/exa.js'
 import { createSerperProvider } from '../../src/providers/serper.js'
 import { createTavilyProvider } from '../../src/providers/tavily.js'
+import { createDeepSeekProvider } from '../../src/providers/deepseek.js'
+import { createZhipuProvider } from '../../src/providers/zhipu.js'
+import { createBochaProvider } from '../../src/providers/bocha.js'
+import { createAlibabaProvider } from '../../src/providers/alibaba.js'
 
 const cases: Array<{
   engine: SearchEngine
   provider: (context: ReturnType<typeof makeContext>) => SearchProvider
-  config: Record<string, { apiKey: string }>
+  config: Record<string, { apiKey: string; baseUrl?: string }>
   body: unknown
 }> = [
   { engine: 'baidu:web', provider: createBaiduProvider, config: { baidu: { apiKey: 'test' } }, body: baiduWebResponse },
@@ -23,6 +31,10 @@ const cases: Array<{
   { engine: 'tavily:advanced', provider: createTavilyProvider, config: { tavily: { apiKey: 'test' } }, body: tavilyResponse },
   { engine: 'exa:auto', provider: createExaProvider, config: { exa: { apiKey: 'test' } }, body: exaResponse },
   { engine: 'serper:google', provider: createSerperProvider, config: { serper: { apiKey: 'test' } }, body: serperResponse },
+  { engine: 'deepseek:web', provider: createDeepSeekProvider, config: { deepseek: { apiKey: 'test' } }, body: deepseekResponse },
+  { engine: 'zhipu:web', provider: createZhipuProvider, config: { zhipu: { apiKey: 'test' } }, body: zhipuResponse },
+  { engine: 'bocha:web', provider: createBochaProvider, config: { bocha: { apiKey: 'test' } }, body: bochaResponse },
+  { engine: 'alibaba:web', provider: createAlibabaProvider, config: { alibaba: { apiKey: 'test', baseUrl: 'https://dashscope.aliyuncs.com' } }, body: alibabaResponse },
 ]
 
 describe('Provider contract', () => {

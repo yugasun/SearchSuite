@@ -99,7 +99,8 @@ node --env-file=.env app.mjs
 
 The same request shape works with any implemented Provider once its credential
 is available. See [Providers](providers.md) for defaults and typed
-`providerOptions`. Tavily and Exa also support `client.fetch({ provider, url })`.
+`providerOptions`. Tavily, Exa, DeepSeek, and Zhipu support
+`client.fetch({ provider, url })`.
 
 ## Troubleshooting
 

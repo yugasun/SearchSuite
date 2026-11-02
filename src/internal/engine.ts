@@ -7,6 +7,10 @@ const ENGINE_ALLOWLIST: Record<ProviderId, readonly string[]> = {
   tavily: ['basic', 'advanced', 'fast', 'ultra-fast'],
   exa: ['auto', 'keyword', 'neural'],
   serper: ['google'],
+  deepseek: ['web'],
+  zhipu: ['web'],
+  bocha: ['web'],
+  alibaba: ['web'],
 }
 
 export interface ParsedEngine {
@@ -64,6 +68,11 @@ function selectedEngine(provider: ProviderId, options: Record<string, unknown>):
       return typeof options.searchType === 'string' ? options.searchType : 'auto'
     case 'serper':
       return 'google'
+    case 'deepseek':
+    case 'zhipu':
+    case 'bocha':
+    case 'alibaba':
+      return 'web'
   }
 }
 

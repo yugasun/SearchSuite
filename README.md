@@ -7,7 +7,8 @@
 ![ESM only](https://img.shields.io/badge/modules-ESM--only-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-One typed API for Baidu, Doubao, Tavily, Exa, and Serper search and page content.
+One typed API for Baidu, Doubao, Tavily, Exa, Serper, DeepSeek, Zhipu, Bocha,
+and Alibaba search, with Tavily, Exa, DeepSeek, and Zhipu page content fetching.
 
 SearchSuite is a framework-independent TypeScript SDK. Choose a Provider by
 name, then use the operation you need:
@@ -23,7 +24,7 @@ const response = await client.search({
 })
 
 const page = await client.fetch({
-  provider: 'tavily',
+  provider: 'deepseek',
   url: 'https://example.com/article',
 })
 ```
@@ -84,6 +85,10 @@ control.
 | Tavily | `tavily:basic`, `tavily:advanced`, `tavily:fast`, `tavily:ultra-fast` | `TAVILY_API_KEY` |
 | Exa | `exa:auto`, `exa:keyword`, `exa:neural` | `EXA_API_KEY` |
 | Serper | `serper:google` | `SERPER_API_KEY` |
+| DeepSeek | `deepseek:web` | `DEEPSEEK_API_KEY` |
+| Zhipu | `zhipu:web` | `ZHIPU_API_KEY` |
+| Bocha | `bocha:web` | `BOCHA_API_KEY` |
+| Alibaba | `alibaba:web` | `DASHSCOPE_API_KEY`; explicit workspace `baseUrl` required |
 
 Switching providers only requires changing `provider`:
 
@@ -98,10 +103,28 @@ Explicit provider configuration takes precedence over environment variables,
 which take precedence over provider defaults. See the [provider guide](docs/providers.md)
 for capabilities, limits, options, and normalized fields.
 
+Alibaba requires an explicit workspace region origin in addition to its API key:
+
+```ts
+const alibaba = new SearchSuite({
+  providers: { alibaba: { baseUrl: 'https://dashscope.aliyuncs.com' } },
+})
+const response = await alibaba.search({
+  provider: 'alibaba',
+  query: 'Recent AI research',
+  providerOptions: { model: 'qwen-plus' },
+})
+```
+
+Choose the origin matching your workspace. Alibaba generates an answer with
+search sources; model/token and search charges may both apply. `maxResults`
+only caps the returned sources locally. The four new providers support search;
+Tavily, Exa, DeepSeek, and Zhipu provide page content fetching.
+
 ## Scope
 
-v0.1 provides the framework-agnostic search SDK, five search Provider adapters,
-and Tavily/Exa page-content fetching. It does not include routing, fallback,
+v0.1 provides the framework-agnostic search SDK, nine search Provider adapters,
+and four page-content fetch adapters. It does not include routing, fallback,
 retries, multi-key selection, result fusion, reranking, caching, Crawl, a
 gateway, SaaS features, or a DeepSeek Harness plugin.
 

@@ -5,8 +5,8 @@ describes possible directions, not commitments, dates, or reserved public APIs.
 
 ## Current: prepare v0.1 for release
 
-The repository already contains the framework-independent TypeScript SDK, five
-provider adapters, typed Provider options, normalized results, structured errors,
+The repository already contains the framework-independent TypeScript SDK, nine
+search provider adapters, typed Provider options, normalized results, structured errors,
 cancellation, offline tests, credential-gated live tests, examples, and an ESM
 build.
 
@@ -63,8 +63,8 @@ No composition API is implemented or promised today.
 `dsh-web-search` consumes SearchSuite so its DeepSeek Harness integration can
 reuse provider compatibility work. SearchSuite exports a `WebFetchProvider`
 contract that is structurally compatible with dsh-web's content provider seam,
-while `SearchSuite.fetch({ provider, url })` handles Tavily and Exa content
-retrieval behind the provider-neutral API.
+while `SearchSuite.fetch({ provider, url })` handles Tavily, Exa, DeepSeek, and
+Zhipu content retrieval behind the provider-neutral API.
 That dependency should point from the integration to SearchSuite; SearchSuite
 core must remain independent of dsh and other agent frameworks.
 

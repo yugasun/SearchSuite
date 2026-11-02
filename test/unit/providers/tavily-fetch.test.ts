@@ -28,4 +28,27 @@ describe('Tavily fetch provider', () => {
       format: 'markdown',
     })
   })
+
+  test('preserves null defaults and rejects invalid non-null options before requesting', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ results: [{ raw_content: 'ok' }] }), { status: 200 }))
+    const config = { tavily: { apiKey: 'test-key' } }
+    const provider = createTavilyFetchProvider(makeContext(fetcher, config))
+
+    await provider.fetch({ provider: 'tavily', url: 'https://example.com', providerOptions: { extractDepth: null, format: null } as never }, makeFetchContext(fetcher, config))
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toMatchObject({ extract_depth: 'basic', format: 'markdown' })
+
+    fetcher.mockClear()
+    await expect(provider.fetch({ provider: 'tavily', url: 'https://example.com', providerOptions: { extractDepth: 'slow' } as never }, makeFetchContext(fetcher, config)))
+      .rejects.toMatchObject({ code: 'INVALID_REQUEST', provider: 'tavily', operation: 'fetch' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  test('accepts explicitly undefined options as defaults', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ results: [{ raw_content: 'ok' }] }), { status: 200 }))
+    const config = { tavily: { apiKey: 'test-key' } }
+    const provider = createTavilyFetchProvider(makeContext(fetcher, config))
+
+    await provider.fetch({ provider: 'tavily', url: 'https://example.com', providerOptions: { extractDepth: undefined, format: undefined } as never }, makeFetchContext(fetcher, config))
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toMatchObject({ extract_depth: 'basic', format: 'markdown' })
+  })
 })

@@ -74,6 +74,12 @@ const fetched = await client.fetch({
   providerOptions: { maxCharacters: 10_000 },
 })
 void fetched
+await client.fetch({ provider: 'deepseek', url: 'https://example.com/article' })
+await client.fetch({ provider: 'zhipu', url: 'https://example.com/article', providerOptions: { format: 'text', noCache: true } })
+// @ts-expect-error DeepSeek's official fetch endpoint defines no provider options.
+await client.fetch({ provider: 'deepseek', url: 'https://example.com/article', providerOptions: { format: 'text' } })
+// @ts-expect-error unsupported Zhipu format values are rejected by the public type.
+await client.fetch({ provider: 'zhipu', url: 'https://example.com/article', providerOptions: { format: 'html' } })
 
 const fetchProvider: WebFetchProvider = {
   id: 'exa',

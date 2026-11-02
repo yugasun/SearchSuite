@@ -1,4 +1,5 @@
 import { InvalidRequestError } from '../../src/errors.js'
+import { normalizeFetchRequest } from '../../src/internal/fetch-normalize.js'
 import { normalizeSearchRequest } from '../../src/internal/normalize.js'
 
 const capabilities = {
@@ -37,5 +38,18 @@ describe('request normalization', () => {
       excludeDomains: ['example.com'],
     }, capabilities)).toThrow(InvalidRequestError)
   })
-})
 
+  test('enforces fetch URL constraints for DeepSeek and Zhipu', () => {
+    const prefix = 'https://example.com/'
+    const boundary = prefix + 'a'.repeat(8192 - prefix.length)
+    expect(normalizeFetchRequest({ provider: 'deepseek', url: boundary }).url).toBe(boundary)
+    expect(normalizeFetchRequest({ provider: 'deepseek', url: `  ${boundary}  ` }).url).toBe(boundary)
+    expect(() => normalizeFetchRequest({ provider: 'deepseek', url: `${boundary}a` })).toThrow(InvalidRequestError)
+    expect(() => normalizeFetchRequest({ provider: 'deepseek', url: prefix + 'é'.repeat(1400) })).toThrow(InvalidRequestError)
+    expect(() => normalizeFetchRequest({ provider: 'deepseek', url: 'ftp://example.com/' })).toThrow(InvalidRequestError)
+    expect(() => normalizeFetchRequest({ provider: 'deepseek', url: '/relative' })).toThrow(InvalidRequestError)
+    expect(() => normalizeFetchRequest({ provider: 'deepseek', url: 'https://user:pw@example.com' })).toThrow(InvalidRequestError)
+    expect(() => normalizeFetchRequest({ provider: 'zhipu', url: 'https://user@example.com' })).toThrow(InvalidRequestError)
+    expect(() => normalizeFetchRequest({ provider: 'tavily', url: 'https://user@example.com' })).not.toThrow()
+  })
+})

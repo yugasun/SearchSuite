@@ -52,4 +52,24 @@ describe('Exa fetch provider', () => {
       .rejects.toMatchObject({ code: 'INVALID_REQUEST', provider: 'exa', operation: 'fetch' })
     expect(fetcher).not.toHaveBeenCalled()
   })
+
+  test('rejects null maxCharacters without making a request', async () => {
+    const fetcher = vi.fn<typeof fetch>()
+    const config = { exa: { apiKey: 'test-key' } }
+    const provider = createExaFetchProvider(makeContext(fetcher, config))
+
+    await expect(provider.fetch({ provider: 'exa', url: 'https://example.com', providerOptions: { maxCharacters: null } as never }, makeFetchContext(fetcher, config)))
+      .rejects.toMatchObject({ code: 'INVALID_REQUEST', provider: 'exa', operation: 'fetch' })
+    expect(fetcher).not.toHaveBeenCalled()
+  })
+
+  test('accepts explicitly undefined maxCharacters as the default', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(JSON.stringify({ results: [{ text: 'ok' }] }), { status: 200 }))
+    const config = { exa: { apiKey: 'test-key' } }
+    const provider = createExaFetchProvider(makeContext(fetcher, config))
+
+    await provider.fetch({ provider: 'exa', url: 'https://example.com', providerOptions: { maxCharacters: undefined } as never }, makeFetchContext(fetcher, config))
+    expect(JSON.parse(String(fetcher.mock.calls[0]?.[1]?.body))).toMatchObject({ text: { maxCharacters: 100_000 } })
+  })
+
 })

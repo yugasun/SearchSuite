@@ -21,14 +21,14 @@ Application / Agent / RAG / dsh-web-search
                      │
            Explicit Lazy Registry
                      │
- ┌──────────┬──────────┬──────────┬────────┬────────┐
- Baidu     Doubao     Tavily      Exa     Serper
+ Baidu / Doubao / Tavily / Exa / Serper
+ DeepSeek / Zhipu / Bocha / Alibaba
                      │
               Native fetch API
 ```
 
-v0.1 实现统一的 Provider-first Search API、Tavily/Exa 内容获取和五个搜索
-Provider Adapter。自动选择、fallback、retry、跨 Provider 路由、搜索组合与
+v0.1 实现统一的 Provider-first Search API、Tavily、Exa、DeepSeek、Zhipu 内容获取
+和九个搜索 Provider Adapter。自动选择、fallback、retry、跨 Provider 路由、搜索组合与
 框架插件均不在当前版本内。
 
 ## 2. v0.1 设计基线
@@ -118,11 +118,39 @@ exa:keyword
 exa:neural
 
 serper:google
+
+deepseek:web
+zhipu:web
+bocha:web
+alibaba:web
 ```
 
 调用方只传 `provider: 'baidu'` 等 Provider 名称；模式通过 Provider 默认值或
 语义化 `providerOptions` 选择。内容获取 Provider 为 `tavily` 和 `exa`，分别
 内部映射到 Extract 和 Contents。
+
+新增四个 Provider 只支持搜索，不增加 `fetch()` Provider。DeepSeek 使用独立
+Web Search 接口；智谱使用 `/api/paas/v4/web_search`；博查使用 Web Search。
+阿里云使用 DashScope 原生模型生成接口，开启联网搜索并返回来源，默认模型为
+`qwen-plus`。必须显式提供工作空间所在区域的 origin `baseUrl`，不从密钥推断
+区域或自动使用 OpenAI 兼容接口。`maxResults` 仅在本地裁剪来源列表，不限制
+模型生成、token 消耗或检索次数，调用可能同时产生模型和搜索费用。具体选项与
+上游文档见 [Provider 指南](docs/providers.md)。
+
+适配器能力映射（`content` 为声明的 capability flag，不代表独立 Fetch）：
+
+| 公共能力 | Baidu | Doubao | Tavily | Exa | Serper | DeepSeek | Zhipu | Bocha | Alibaba |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `includeDomains` | — | — | Yes | — | — | — | — | — | — |
+| `excludeDomains` | — | — | Yes | — | — | — | — | — | — |
+| `timeRange` | — | — | Yes | — | — | — | — | Yes | — |
+| `content` | — | Yes | Yes | Yes | Yes | Yes | Yes | Yes | — |
+| score mapping | — | — | Yes | — | — | Yes | — | — | — |
+
+Bocha 的通用 `timeRange` 映射为 `freshness`；显式 `providerOptions.freshness`
+优先。智谱 Sogou 搜索会将请求条数向上取整到 10 条档位，之后仍按调用方
+`maxResults` 裁剪结果。阿里云 base URL 使用工作空间区域 origin（推荐），也
+支持旧共享 origin `https://dashscope.aliyuncs.com`；不要包含 `/api/v1` 路径。
 
 ## 5. 实际代码结构
 
@@ -148,7 +176,11 @@ src/
     ├── doubao.ts
     ├── tavily.ts
     ├── exa.ts
-    └── serper.ts
+    ├── serper.ts
+    ├── deepseek.ts
+    ├── zhipu.ts
+    ├── bocha.ts
+    └── alibaba.ts
 
 test/
 ├── helpers.ts
@@ -218,10 +250,14 @@ SearchResponse<E>
 职责边界：
 
 - Client：公共编排、signal 组合、通用输入归一化、capability 策略、Provider 获取与端到端延迟；
-- Registry：显式维护 Search 与 Fetch 动态 import factory，按 Provider 缓存初始化 Promise，失败时清除缓存；
-- Provider：解析配置、校验 Provider options、映射一次 Provider 请求、归一化响应与 Provider 限制 warning；
+- Registry：显式维护 Search 与 Fetch 动态 import factory，共用私有惰性初始化函数；两类 Registry 各自缓存初始化 Promise，并发调用共享待定 Promise，失败时清除对应缓存；
+- Provider：解析配置、通过共享白名单与值规则校验 Provider options、映射一次 Provider 请求、归一化响应与 Provider 限制 warning；选项规则保留在各 Adapter 内，Fetch 错误标记 `operation: 'fetch'`；
 - Types：表达跨 Provider 可迁移概念，并提供 Provider 级类型推导；
 - Router（未来可选上层）：选择 Provider；不得渗入 Adapter 或改变核心单次请求语义。
+
+Fetch URL policy 统一由 `src/internal/fetch-normalize.ts` 在 Provider 初始化前执行：
+解析、序列化绝对 HTTP(S) URL；DeepSeek 与 Zhipu 禁止 URL 凭据，DeepSeek 限制
+序列化后的 URL 最多 8192 字符。Adapter 消费归一化 URL，不重复执行长度检查。
 
 v0.1 中每次 `search()` 或 `fetch()` 最多发起一次上游 Provider 请求。Provider、
 模式、取消、配置、通用参数或 `providerOptions` 校验都可能在上游 `fetch`
@@ -289,8 +325,10 @@ CI 不运行 Live Test，也不创建 tarball。以下是发布前手工检查�
 
 - [x] `searchsuite` 本地包可构建为 Node.js 24+ 纯 ESM 产物；
 - [x] `SearchSuite.search()` 的 Provider/options 类型推导与兼容 engine 入口已实现；
-- [x] `SearchSuite.fetch()` 与 Tavily/Exa 内容 Provider 已实现；
-- [x] Baidu、Doubao、Tavily、Exa、Serper 通过显式 Registry 惰性加载；
+- [x] `SearchSuite.fetch()` 与 Tavily、Exa、DeepSeek、Zhipu 内容 Provider 已实现；
+- [x] DeepSeek fetch URL credential and 8192-character boundary validation is implemented;
+- [x] Zhipu Reader maps only documented request options; Bocha and Alibaba have no independent fetch adapter.
+- [x] Baidu、Doubao、Tavily、Exa、Serper、DeepSeek、Zhipu、Bocha、Alibaba 通过显式 Registry 惰性加载；
 - [x] 统一请求、answer、result、usage、capability、warning 与异常契约；
 - [x] 支持显式配置、环境变量、注入 fetch 与 AbortSignal；
 - [x] Response、Result、Usage 与 Error 可保留安全 `raw`；
