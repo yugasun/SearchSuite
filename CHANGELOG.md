@@ -1,5 +1,11 @@
 # searchsuite
 
+## 0.2.0
+
+### Minor Changes
+
+- 70022a2: Add DeepSeek, Zhipu, Bocha, and Alibaba search providers, plus DeepSeek and Zhipu page content fetching.
+
 ## Unreleased
 
 ### Added
