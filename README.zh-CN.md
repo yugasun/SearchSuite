@@ -7,11 +7,17 @@
 ![ESM only](https://img.shields.io/badge/modules-ESM--only-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+[![npm version](https://img.shields.io/npm/v/searchsuite)](https://www.npmjs.com/package/searchsuite) · [项目主页](https://searchsuite.vercel.app)
+
 用一套类型安全的 API 接入百度、豆包、Tavily、Exa、Serper、DeepSeek、智谱、博查和
 阿里云搜索，并通过 Tavily、Exa、DeepSeek 和智谱获取网页内容。
 
 SearchSuite 是独立于框架的 TypeScript SDK。调用方只需要选择 Provider，
 再使用搜索或内容获取接口：
+
+![SearchSuite 架构图](docs/architecture.svg)
+
+请求流程和组件职责详见[架构文档](docs/architecture.md)。
 
 ```ts
 import { SearchSuite } from 'searchsuite'

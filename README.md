@@ -7,11 +7,17 @@
 ![ESM only](https://img.shields.io/badge/modules-ESM--only-blue)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+[![npm version](https://img.shields.io/npm/v/searchsuite)](https://www.npmjs.com/package/searchsuite) · [Project website](https://searchsuite.vercel.app)
+
 One typed API for Baidu, Doubao, Tavily, Exa, Serper, DeepSeek, Zhipu, Bocha,
 and Alibaba search, with Tavily, Exa, DeepSeek, and Zhipu page content fetching.
 
 SearchSuite is a framework-independent TypeScript SDK. Choose a Provider by
 name, then use the operation you need:
+
+![SearchSuite architecture](docs/architecture.svg)
+
+See the [architecture guide](docs/architecture.md) for the request lifecycle and component responsibilities.
 
 ```ts
 import { SearchSuite } from 'searchsuite'

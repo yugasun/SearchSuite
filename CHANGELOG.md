@@ -20,6 +20,9 @@
 
 ### Changed
 
+- Redesign the shared landing/README architecture diagram as a horizontal
+  provider map with embedded supplier icons, animated request paths, and a
+  reduced-motion view. Preserve explicit single-provider request semantics.
 - Share search/fetch option validation and lazy registry initialization while
   keeping adapter-specific rules, defaults, and separate provider caches.
 - Centralize fetch URL policy before provider initialization and remove the
