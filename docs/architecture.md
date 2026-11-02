@@ -6,6 +6,14 @@ contract; each adapter owns only the translation for one provider. It also
 exports a framework-independent `WebFetchProvider` seam and a provider-first
 content retrieval API.
 
+The [shared architecture diagram](architecture.svg), used by the landing page
+and both READMEs, shows the nine search provider choices as a horizontal map.
+On the landing page it appears immediately after the hero and stats, before
+the capability details. Moving highlights illustrate alternative request
+paths, not parallel requests. Each call still selects one provider explicitly.
+The self-contained SVG embeds provider marks and disables its flow animation
+for reduced-motion preferences.
+
 ```text
 Application
     │ SearchSuite.search(request) / SearchSuite.fetch(request)

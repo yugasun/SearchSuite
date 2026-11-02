@@ -10,3 +10,5 @@ coverage/
 /docs/adr/
 /docs/plans/
 /docs/superpowers/
+.vercel
+.env*

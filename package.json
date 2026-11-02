@@ -1,7 +1,7 @@
 {
   "name": "searchsuite",
   "version": "0.2.0",
-  "description": "A type-safe TypeScript SDK for Baidu, Doubao, Tavily, Exa, Serper, DeepSeek, Zhipu, Bocha, and Alibaba search.",
+  "description": "A type-safe, zero-dependency TypeScript SDK for search and web content across nine providers.",
   "keywords": [
     "search",
     "web-search",
@@ -17,9 +17,13 @@
     "deepseek",
     "zhipu",
     "bocha",
-    "alibaba"
+    "alibaba",
+    "content-fetch",
+    "web-fetch",
+    "nodejs",
+    "esm"
   ],
-  "homepage": "https://github.com/yugasun/SearchSuite#readme",
+  "homepage": "https://searchsuite.vercel.app",
   "bugs": {
     "url": "https://github.com/yugasun/SearchSuite/issues"
   },
@@ -49,6 +53,7 @@
     "dist/**/*.d.ts",
     "README.md",
     "README.zh-CN.md",
+    "docs/architecture.svg",
     "LICENSE"
   ],
   "scripts": {
