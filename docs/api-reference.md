@@ -57,7 +57,7 @@ request still uses `provider: 'tavily'`.
 [`ProviderSearchRequest`](../src/types.ts) contains:
 
 - `provider`: one of `baidu`, `doubao`, `tavily`, `exa`, `serper`, `deepseek`,
-  `zhipu`, `bocha`, or `alibaba`.
+  `zhipu`, `bocha`, `alibaba`, or `anysearch`.
 - `query`: the search query.
 - `maxResults`: requested result count; defaults to `10`.
 - `includeDomains` and `excludeDomains`: optional domain filters.
@@ -87,6 +87,10 @@ requirements are documented in the [provider guide](providers.md#deepseek).
 Alibaba requires `providers.alibaba.baseUrl` for the workspace origin; no region
 or workspace is inferred from `DASHSCOPE_API_KEY`. Its `maxResults` limits the
 returned source list locally, not the generated answer, token use, or search cost.
+
+AnySearch resolves to `anysearch:web` and supports anonymous search when
+`providers.anysearch.apiKey` and `ANYSEARCH_API_KEY` are unset. See the
+[AnySearch provider guide](providers.md#anysearch) for its limits.
 
 ## `fetch(request)`
 
@@ -208,6 +212,7 @@ The shared HTTP boundary currently maps:
 | Condition | Error |
 | --- | --- |
 | HTTP 401 or 403 | `AuthenticationError` |
+| HTTP 402 from AnySearch | `QuotaExceededError` |
 | HTTP 429 | `RateLimitError` |
 | HTTP 400 or 422 | `InvalidRequestError` |
 | HTTP 408 | `SearchTimeoutError` |
@@ -216,9 +221,8 @@ The shared HTTP boundary currently maps:
 | SDK deadline | `SearchTimeoutError` |
 | Other fetch/network failure | `ProviderUnavailableError` |
 
-`QuotaExceededError` is public for a provider-specific mapping that can reliably
-distinguish quota exhaustion. The generic HTTP mapper maps every HTTP 429 to
-`RateLimitError`, and the current adapters do not emit a quota-specific error.
+For AnySearch HTTP 402, the SDK discards the upstream body because it can contain
+generated credentials.
 
 The `retryable` flag is metadata only. SearchSuite v0.1 does not retry, route,
 or fall back automatically.

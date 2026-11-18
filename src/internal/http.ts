@@ -2,6 +2,7 @@ import {
   AuthenticationError,
   InvalidRequestError,
   ProviderUnavailableError,
+  QuotaExceededError,
   RateLimitError,
   SearchAbortedError,
   SearchSuiteError,
@@ -14,6 +15,7 @@ export interface RequestJsonOptions {
   provider: ProviderId
   engine?: SearchEngine
   operation?: 'search' | 'fetch'
+  quotaExceededStatus?: number
   url: string
   init?: RequestInit
   signal?: AbortSignal
@@ -57,6 +59,15 @@ export async function requestJson(options: RequestJsonOptions): Promise<unknown>
       ...providerContext(options),
       retryable: true,
       cause: error,
+    })
+  }
+
+  if (response.status === options.quotaExceededStatus) {
+    // Quota failures can contain provisioned credentials in unstructured text.
+    void response.body?.cancel().catch(() => {})
+    throw new QuotaExceededError('Search provider quota exceeded', {
+      ...providerContext(options),
+      statusCode: response.status,
     })
   }
 

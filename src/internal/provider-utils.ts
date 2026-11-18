@@ -57,7 +57,11 @@ export function resolveProviderConfig(
     )
   }
 
-  const baseUrl = (configured?.baseUrl?.trim() || defaultBaseUrl).replace(/\/$/, '')
+  return { apiKey, baseUrl: resolveProviderBaseUrl(provider, configured?.baseUrl, defaultBaseUrl) }
+}
+
+export function resolveProviderBaseUrl(provider: ProviderId, configured: string | undefined, defaultBaseUrl: string): string {
+  const baseUrl = (configured?.trim() || defaultBaseUrl).replace(/\/$/, '')
   let parsed: URL
   try {
     parsed = new URL(baseUrl)
@@ -70,7 +74,7 @@ export function resolveProviderConfig(
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
     throw new ConfigurationError(`Provider '${provider}' baseUrl must use http or https`, { provider })
   }
-  return { apiKey, baseUrl }
+  return baseUrl
 }
 
 function validateProviderOptions(

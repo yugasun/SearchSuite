@@ -10,7 +10,7 @@
 [![npm version](https://img.shields.io/npm/v/searchsuite)](https://www.npmjs.com/package/searchsuite) · [Project website](https://searchsuite.vercel.app)
 
 One typed API for Baidu, Doubao, Tavily, Exa, Serper, DeepSeek, Zhipu, Bocha,
-and Alibaba search, with Tavily, Exa, DeepSeek, and Zhipu page content fetching.
+Alibaba, and AnySearch, with Tavily, Exa, DeepSeek, and Zhipu page content fetching.
 
 SearchSuite is a framework-independent TypeScript SDK. Choose a Provider by
 name, then use the operation you need:
@@ -95,6 +95,7 @@ control.
 | Zhipu | `zhipu:web` | `ZHIPU_API_KEY` |
 | Bocha | `bocha:web` | `BOCHA_API_KEY` |
 | Alibaba | `alibaba:web` | `DASHSCOPE_API_KEY`; explicit workspace `baseUrl` required |
+| AnySearch | `anysearch:web` | `ANYSEARCH_API_KEY` (optional for anonymous search) |
 
 Switching providers only requires changing `provider`:
 
@@ -124,13 +125,13 @@ const response = await alibaba.search({
 
 Choose the origin matching your workspace. Alibaba generates an answer with
 search sources; model/token and search charges may both apply. `maxResults`
-only caps the returned sources locally. The four new providers support search;
-Tavily, Exa, DeepSeek, and Zhipu provide page content fetching.
+only caps the returned sources locally. Tavily, Exa, DeepSeek, and Zhipu also
+provide page content fetching.
 
 ## Scope
 
-v0.1 provides the framework-agnostic search SDK, nine search Provider adapters,
-and four page-content fetch adapters. It does not include routing, fallback,
+The framework-agnostic SDK includes ten search Provider adapters and four
+page-content fetch adapters. Its scope excludes routing, fallback,
 retries, multi-key selection, result fusion, reranking, caching, Crawl, a
 gateway, SaaS features, or a DeepSeek Harness plugin.
 

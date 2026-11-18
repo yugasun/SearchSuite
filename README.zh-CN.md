@@ -9,8 +9,8 @@
 
 [![npm version](https://img.shields.io/npm/v/searchsuite)](https://www.npmjs.com/package/searchsuite) · [项目主页](https://searchsuite.vercel.app)
 
-用一套类型安全的 API 接入百度、豆包、Tavily、Exa、Serper、DeepSeek、智谱、博查和
-阿里云搜索，并通过 Tavily、Exa、DeepSeek 和智谱获取网页内容。
+用一套类型安全的 API 接入百度、豆包、Tavily、Exa、Serper、DeepSeek、智谱、博查、
+阿里云和 AnySearch 搜索，并通过 Tavily、Exa、DeepSeek 和智谱获取网页内容。
 
 SearchSuite 是独立于框架的 TypeScript SDK。调用方只需要选择 Provider，
 再使用搜索或内容获取接口：
@@ -94,6 +94,7 @@ SearchSuite 会在 Provider 首次使用时读取环境变量，但不会自行�
 | Zhipu（智谱） | `zhipu:web` | `ZHIPU_API_KEY` |
 | Bocha（博查） | `bocha:web` | `BOCHA_API_KEY` |
 | Alibaba（阿里云） | `alibaba:web` | `DASHSCOPE_API_KEY`；必须显式配置工作空间 `baseUrl` |
+| AnySearch | `anysearch:web` | `ANYSEARCH_API_KEY`（可选，未配置时使用匿名额度） |
 
 切换 Provider 只需更换 `provider`：
 
@@ -121,8 +122,8 @@ const response = await alibaba.search({
 ```
 
 请使用与工作空间匹配的区域 origin。阿里云返回模型生成的回答和搜索来源，可能同时
-产生模型/token 和搜索费用；`maxResults` 只在本地裁剪返回的来源。新增四个 Provider
-支持搜索；Tavily、Exa、DeepSeek 和智谱也支持网页内容获取。
+产生模型/token 和搜索费用。`maxResults` 只在本地裁剪返回的来源。Tavily、Exa、
+DeepSeek 和智谱也支持网页内容获取。
 
 ## 文档
 

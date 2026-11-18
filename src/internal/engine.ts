@@ -11,6 +11,7 @@ const ENGINE_ALLOWLIST: Record<ProviderId, readonly string[]> = {
   zhipu: ['web'],
   bocha: ['web'],
   alibaba: ['web'],
+  anysearch: ['web'],
 }
 
 export interface ParsedEngine {
@@ -72,6 +73,7 @@ function selectedEngine(provider: ProviderId, options: Record<string, unknown>):
     case 'zhipu':
     case 'bocha':
     case 'alibaba':
+    case 'anysearch':
       return 'web'
   }
 }
