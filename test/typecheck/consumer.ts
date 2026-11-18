@@ -22,6 +22,13 @@ const providerResponse = await client.search({
 const providerTyped: SearchResponseFor<'exa'> = providerResponse
 void providerTyped
 
+const anysearch = await new SearchSuite({ providers: { anysearch: {} } }).search({
+  provider: 'anysearch',
+  query: 'anonymous web search',
+})
+const anysearchTyped: SearchResponse<'anysearch:web'> = anysearch
+void anysearchTyped
+
 const baiduWeb = await client.search({
   provider: 'baidu',
   query: 'ordinary web search',

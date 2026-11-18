@@ -23,6 +23,7 @@ SearchSuite resolves credentials when a provider is first used:
 | Tavily | `TAVILY_API_KEY` |
 | Exa | `EXA_API_KEY` |
 | Serper | `SERPER_API_KEY` |
+| AnySearch | `ANYSEARCH_API_KEY` (optional) |
 
 Configuration is resolved independently for each field:
 
@@ -51,6 +52,10 @@ Every provider accepts explicit `apiKey` and `baseUrl` fields. Doubao remaps one
 exact legacy Ark endpoint for compatibility; Baidu also accepts an explicit
 default `model`. See the [provider guide](providers.md) for those provider-specific
 details.
+
+For a first search without an API key, use
+`new SearchSuite().search({ provider: 'anysearch', query: 'Node.js ESM' })`.
+AnySearch applies its daily anonymous quota when no key is set.
 
 ## Use a `.env` file locally
 

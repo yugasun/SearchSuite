@@ -7,6 +7,7 @@ import { deepseekResponse } from '../fixtures/deepseek.js'
 import { zhipuResponse } from '../fixtures/zhipu.js'
 import { bochaResponse } from '../fixtures/bocha.js'
 import { alibabaResponse } from '../fixtures/alibaba.js'
+import { anysearchResponse } from '../fixtures/anysearch.js'
 import { makeContext, makeRequest, makeSearchContext } from '../helpers.js'
 import type { SearchProvider } from '../../src/provider.js'
 import type { SearchEngine } from '../../src/types.js'
@@ -19,6 +20,7 @@ import { createDeepSeekProvider } from '../../src/providers/deepseek.js'
 import { createZhipuProvider } from '../../src/providers/zhipu.js'
 import { createBochaProvider } from '../../src/providers/bocha.js'
 import { createAlibabaProvider } from '../../src/providers/alibaba.js'
+import { createAnySearchProvider } from '../../src/providers/anysearch.js'
 
 const cases: Array<{
   engine: SearchEngine
@@ -35,6 +37,7 @@ const cases: Array<{
   { engine: 'zhipu:web', provider: createZhipuProvider, config: { zhipu: { apiKey: 'test' } }, body: zhipuResponse },
   { engine: 'bocha:web', provider: createBochaProvider, config: { bocha: { apiKey: 'test' } }, body: bochaResponse },
   { engine: 'alibaba:web', provider: createAlibabaProvider, config: { alibaba: { apiKey: 'test', baseUrl: 'https://dashscope.aliyuncs.com' } }, body: alibabaResponse },
+  { engine: 'anysearch:web', provider: createAnySearchProvider, config: { anysearch: { apiKey: 'test' } }, body: anysearchResponse },
 ]
 
 describe('Provider contract', () => {

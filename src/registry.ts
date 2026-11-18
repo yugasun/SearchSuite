@@ -40,6 +40,7 @@ const builtInFactories: Record<ProviderId, ProviderFactory> = {
   zhipu: async (context) => (await import('./providers/zhipu.js')).createZhipuProvider(context),
   bocha: async (context) => (await import('./providers/bocha.js')).createBochaProvider(context),
   alibaba: async (context) => (await import('./providers/alibaba.js')).createAlibabaProvider(context),
+  anysearch: async (context) => (await import('./providers/anysearch.js')).createAnySearchProvider(context),
 }
 
 export function createProviderRegistry(overrides: ProviderFactoryMap = {}): ProviderRegistry {

@@ -10,6 +10,8 @@
 
 ### Added
 
+- Add `anysearch:web` with anonymous search and optional `ANYSEARCH_API_KEY`.
+  HTTP 402 raises `QuotaExceededError` without exposing the provider response body.
 - Add DeepSeek, Zhipu, Bocha, and Alibaba search providers with typed options,
   environment credentials, normalized results, and provider-specific limits.
 - Alibaba uses native DashScope generation with web search and source citations;

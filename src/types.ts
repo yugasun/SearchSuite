@@ -1,6 +1,6 @@
 import type { ProviderCapabilities } from './capabilities.js'
 
-export type ProviderId = 'baidu' | 'doubao' | 'tavily' | 'exa' | 'serper' | 'deepseek' | 'zhipu' | 'bocha' | 'alibaba'
+export type ProviderId = 'baidu' | 'doubao' | 'tavily' | 'exa' | 'serper' | 'deepseek' | 'zhipu' | 'bocha' | 'alibaba' | 'anysearch'
 
 export type FetchProviderId = 'tavily' | 'exa' | 'deepseek' | 'zhipu'
 
@@ -18,6 +18,7 @@ export interface EngineMap {
   zhipu: 'web'
   bocha: 'web'
   alibaba: 'web'
+  anysearch: 'web'
 }
 
 export type SearchEngine = {
@@ -122,7 +123,8 @@ export type ProviderOptionsFor<E extends SearchEngine> =
                     : E extends 'zhipu:web' ? ZhipuSearchOptions
                       : E extends 'bocha:web' ? BochaSearchOptions
                         : E extends 'alibaba:web' ? AlibabaSearchOptions
-                          : never
+                          : E extends 'anysearch:web' ? NoProviderOptions
+                            : never
 
 export type SearchOptionsFor<P extends ProviderId> =
   P extends 'baidu' ? BaiduSearchOptions
@@ -134,7 +136,8 @@ export type SearchOptionsFor<P extends ProviderId> =
               : P extends 'zhipu' ? ZhipuSearchOptions
                 : P extends 'bocha' ? BochaSearchOptions
                   : P extends 'alibaba' ? AlibabaSearchOptions
-                    : never
+                    : P extends 'anysearch' ? NoProviderOptions
+                      : never
 
 export interface SearchRequest<E extends SearchEngine = SearchEngine> {
   engine: E
@@ -279,6 +282,7 @@ export type DeepSeekConfig = ProviderConfig
 export type ZhipuConfig = ProviderConfig
 export type BochaConfig = ProviderConfig
 export type AlibabaConfig = ProviderConfig
+export type AnySearchConfig = ProviderConfig
 
 export interface ProviderConfigMap {
   baidu?: BaiduConfig
@@ -290,6 +294,7 @@ export interface ProviderConfigMap {
   zhipu?: ZhipuConfig
   bocha?: BochaConfig
   alibaba?: AlibabaConfig
+  anysearch?: AnySearchConfig
 }
 
 export type UnsupportedParamMode = 'strict' | 'warn' | 'ignore'

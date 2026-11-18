@@ -22,14 +22,14 @@ Application / Agent / RAG / dsh-web-search
            Explicit Lazy Registry
                      │
  Baidu / Doubao / Tavily / Exa / Serper
- DeepSeek / Zhipu / Bocha / Alibaba
+ DeepSeek / Zhipu / Bocha / Alibaba / AnySearch
                      │
               Native fetch API
 ```
 
-v0.1 实现统一的 Provider-first Search API、Tavily、Exa、DeepSeek、Zhipu 内容获取
-和九个搜索 Provider Adapter。自动选择、fallback、retry、跨 Provider 路由、搜索组合与
-框架插件均不在当前版本内。
+SDK 提供统一的 Provider-first Search API、Tavily、Exa、DeepSeek、Zhipu 内容获取
+和十个搜索 Provider Adapter。自动选择、fallback、retry、跨 Provider 路由、搜索组合与
+框架插件均不在 SDK 范围内。
 
 ## 2. v0.1 设计基线
 
@@ -123,6 +123,7 @@ deepseek:web
 zhipu:web
 bocha:web
 alibaba:web
+anysearch:web
 ```
 
 调用方只传 `provider: 'baidu'` 等 Provider 名称；模式通过 Provider 默认值或
@@ -137,15 +138,20 @@ Web Search 接口；智谱使用 `/api/paas/v4/web_search`；博查使用 Web Se
 模型生成、token 消耗或检索次数，调用可能同时产生模型和搜索费用。具体选项与
 上游文档见 [Provider 指南](docs/providers.md)。
 
+AnySearch 默认使用单次 `POST /v1/search`，最多请求 10 条。未配置 `apiKey` 或
+`ANYSEARCH_API_KEY` 时使用匿名额度。搜索结果可附带 `content`，不增加独立的
+`fetch()` Provider。HTTP 402 映射为 `QuotaExceededError`，丢弃可能携带自动生成
+凭据的响应正文。
+
 适配器能力映射（`content` 为声明的 capability flag，不代表独立 Fetch）：
 
-| 公共能力 | Baidu | Doubao | Tavily | Exa | Serper | DeepSeek | Zhipu | Bocha | Alibaba |
-| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| `includeDomains` | — | — | Yes | — | — | — | — | — | — |
-| `excludeDomains` | — | — | Yes | — | — | — | — | — | — |
-| `timeRange` | — | — | Yes | — | — | — | — | Yes | — |
-| `content` | — | Yes | Yes | Yes | Yes | Yes | Yes | Yes | — |
-| score mapping | — | — | Yes | — | — | Yes | — | — | — |
+| 公共能力 | Baidu | Doubao | Tavily | Exa | Serper | DeepSeek | Zhipu | Bocha | Alibaba | AnySearch |
+| --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `includeDomains` | — | — | Yes | — | — | — | — | — | — | — |
+| `excludeDomains` | — | — | Yes | — | — | — | — | — | — | — |
+| `timeRange` | — | — | Yes | — | — | — | — | Yes | — | — |
+| `content` | — | Yes | Yes | Yes | Yes | Yes | Yes | Yes | — | Yes |
+| score mapping | — | — | Yes | — | — | Yes | — | — | — | — |
 
 Bocha 的通用 `timeRange` 映射为 `freshness`；显式 `providerOptions.freshness`
 优先。智谱 Sogou 搜索会将请求条数向上取整到 10 条档位，之后仍按调用方
@@ -180,7 +186,8 @@ src/
     ├── deepseek.ts
     ├── zhipu.ts
     ├── bocha.ts
-    └── alibaba.ts
+    ├── alibaba.ts
+    └── anysearch.ts
 
 test/
 ├── helpers.ts

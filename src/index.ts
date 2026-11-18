@@ -1,6 +1,7 @@
 export type {
   AlibabaConfig,
   AlibabaSearchOptions,
+  AnySearchConfig,
   BochaConfig,
   BochaSearchOptions,
   DeepSeekConfig,
