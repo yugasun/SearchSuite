@@ -1,5 +1,11 @@
 # searchsuite
 
+## 0.3.0
+
+### Minor Changes
+
+- f6d6d8b: Add AnySearch web search with optional API keys and anonymous quota. HTTP 402 maps to `QuotaExceededError` and discards upstream error bodies that may contain credentials.
+
 ## 0.2.0
 
 ### Minor Changes
